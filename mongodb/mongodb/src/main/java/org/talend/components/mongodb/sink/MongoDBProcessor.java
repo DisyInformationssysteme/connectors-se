@@ -12,7 +12,7 @@
  */
 package org.talend.components.mongodb.sink;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -80,18 +80,27 @@ public class MongoDBProcessor extends MongoCommonOutput {
         // apply to database level too, necessay?
         if (configuration.isSetWriteConcern()) {
             switch (configuration.getWriteConcern()) {
-            case ACKNOWLEDGED:
-                database = database.withWriteConcern(ACKNOWLEDGED);
-                break;
-            case UNACKNOWLEDGED:
-                database = database.withWriteConcern(UNACKNOWLEDGED);
-                break;
-            case JOURNALED:
-                database = database.withWriteConcern(JOURNALED);
-                break;
-            case REPLICA_ACKNOWLEDGED:
-                database = database.withWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
-                break;
+                case ACKNOWLEDGED:
+                    database = database.withWriteConcern(ACKNOWLEDGED);
+                    break;
+                case UNACKNOWLEDGED:
+                    database = database.withWriteConcern(UNACKNOWLEDGED);
+                    break;
+                case JOURNALED:
+                    database = database.withWriteConcern(JOURNALED);
+                    break;
+                case MAJORITY:
+                    database = database.withWriteConcern(MAJORITY);
+                    break;
+                case W1:
+                    database = database.withWriteConcern(W1);
+                    break;
+                case W2:
+                    database = database.withWriteConcern(W2);
+                    break;
+                case W3:
+                    database = database.withWriteConcern(W3);
+                    break;
             }
         }
 
@@ -99,18 +108,27 @@ public class MongoDBProcessor extends MongoCommonOutput {
 
         if (configuration.isSetWriteConcern()) {
             switch (configuration.getWriteConcern()) {
-            case ACKNOWLEDGED:
-                collection = collection.withWriteConcern(ACKNOWLEDGED);
-                break;
-            case UNACKNOWLEDGED:
-                collection = collection.withWriteConcern(UNACKNOWLEDGED);
-                break;
-            case JOURNALED:
-                collection = collection.withWriteConcern(JOURNALED);
-                break;
-            case REPLICA_ACKNOWLEDGED:
-                collection = collection.withWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
-                break;
+                case ACKNOWLEDGED:
+                    collection = collection.withWriteConcern(ACKNOWLEDGED);
+                    break;
+                case UNACKNOWLEDGED:
+                    collection = collection.withWriteConcern(UNACKNOWLEDGED);
+                    break;
+                case JOURNALED:
+                    collection = collection.withWriteConcern(JOURNALED);
+                    break;
+                case MAJORITY:
+                    collection = collection.withWriteConcern(MAJORITY);
+                    break;
+                case W1:
+                    collection = collection.withWriteConcern(W1);
+                    break;
+                case W2:
+                    collection = collection.withWriteConcern(W2);
+                    break;
+                case W3:
+                    collection = collection.withWriteConcern(W3);
+                    break;
             }
         }
 

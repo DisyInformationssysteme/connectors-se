@@ -12,10 +12,12 @@
  */
 package org.talend.components.mongodb;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.connection.ConnectionPoolSettings;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.junit.jupiter.api.*;
@@ -96,8 +98,7 @@ public class MongoDBTest {
         log.info("Starting MongoDB on port {}", port);
 
         mongoUri = URI.create(MONGO_DB_CONTAINER.getReplicaSetUrl());
-        client = new MongoClient(mongoUri.getHost(), mongoUri.getPort());
-
+        client = MongoClients.create(mongoUri.toString());
         MongoDatabase database = client.getDatabase(DATABASE);
 
         MongoCollection<Document> collection = database.getCollection("basic");
@@ -346,19 +347,22 @@ public class MongoDBTest {
     }
 
     @Test
-    void testGetOptions() {
+    void testGetMongoClientSettings() {
         MongoDBDataStore datastore = new MongoDBDataStore();
         List<ConnectionParameter> cp = Arrays
                 .asList(new ConnectionParameter("connectTimeoutMS", "300000"),
                         new ConnectionParameter("appName", "myapp"));
         datastore.setConnectionParameter(cp);
-        MongoClientOptions options = mongoDBService.getOptions(datastore);
-        Assertions.assertEquals(300000, options.getConnectTimeout());
-        Assertions.assertEquals("myapp", options.getApplicationName());
-
-        datastore.setConnectionParameter(Collections.emptyList());
-        options = mongoDBService.getOptions(datastore);
-        Assertions.assertNull(options.getApplicationName());
+        datastore.setAddress(new Address("address1", 27017));
+        // MongoClientOptions options = mongoDBService.getOptions(datastore);
+        // Assertions.assertEquals(300000, options.getConnectTimeout());
+        // Assertions.assertEquals("myapp", options.getApplicationName());
+        //
+        // datastore.setConnectionParameter(Collections.emptyList());
+        // options = mongoDBService.getOptions(datastore);
+        // Assertions.assertNull(options.getApplicationName());
+        MongoClientSettings settings = mongoDBService.getMongoClientSettings(datastore);
+        ConnectionPoolSettings poolSettings = settings.getConnectionPoolSettings();
     }
 
     private void executeSourceTestJob(MongoCommonSourceConfiguration configuration) {

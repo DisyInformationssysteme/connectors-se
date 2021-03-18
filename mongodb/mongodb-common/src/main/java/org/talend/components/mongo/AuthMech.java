@@ -15,5 +15,6 @@ package org.talend.components.mongo;
 public enum AuthMech {
     NEGOTIATE,
     // PLAIN_SASL,
-    SCRAM_SHA_1_SASL
+    SCRAM_SHA_1_SASL,
+    SCRAM_SHA_256_SASL
 }

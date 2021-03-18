@@ -13,8 +13,9 @@
 package org.talend.components.mongo.source;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.MongoClient;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -158,7 +159,8 @@ public class SplitUtil {
     }
 
     private static String filtersToJson(Bson filters) {
-        BsonDocument document = filters.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry());
+        BsonDocument document =
+                filters.toBsonDocument(BsonDocument.class, MongoClientSettings.getDefaultCodecRegistry());
         return document.toJson(JsonWriterSettings.builder().outputMode(JsonMode.SHELL).build());
     }
 

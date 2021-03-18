@@ -46,13 +46,13 @@ public class Auth implements Serializable {
 
     @Option
     @ActiveIf(target = "needAuth", value = "true")
-    @ActiveIf(target = "authMech", value = { "NEGOTIATE", "SCRAM_SHA_1_SASL" })
+    @ActiveIf(target = "authMech", value = { "NEGOTIATE", "SCRAM_SHA_1_SASL", "SCRAM_SHA_256_SASL" })
     @Documentation("Use auth database")
     private boolean useAuthDatabase;
 
     @Option
     @ActiveIf(target = "needAuth", value = "true")
-    @ActiveIf(target = "authMech", value = { "NEGOTIATE", "SCRAM_SHA_1_SASL" })
+    @ActiveIf(target = "authMech", value = { "NEGOTIATE", "SCRAM_SHA_1_SASL", "SCRAM_SHA_256_SASL" })
     @ActiveIf(target = "useAuthDatabase", value = "true")
     @Documentation("Auth database")
     private String authDatabase;

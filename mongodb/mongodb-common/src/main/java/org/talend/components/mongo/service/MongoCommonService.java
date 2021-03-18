@@ -13,7 +13,12 @@
 package org.talend.components.mongo.service;
 
 import com.mongodb.*;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.connection.ClusterSettings;
+import com.mongodb.connection.ClusterType;
+import com.mongodb.connection.ServerDescription;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
@@ -22,10 +27,7 @@ import org.bson.Document;
 import org.bson.json.JsonParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.talend.components.mongo.Address;
-import org.talend.components.mongo.Auth;
-import org.talend.components.mongo.ConnectionParameter;
-import org.talend.components.mongo.PathMapping;
+import org.talend.components.mongo.*;
 import org.talend.components.mongo.datastore.MongoCommonDataStore;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.record.Schema;
@@ -33,10 +35,8 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,43 +53,14 @@ public class MongoCommonService {
     protected RecordBuilderFactory builderFactory;
 
     public MongoClient createClient(MongoCommonDataStore datastore) {
-        MongoCredential mc = getMongoCredential(datastore);
+        MongoClient client = null;
         try {
-            switch (datastore.getAddressType()) {
-            case STANDALONE:
-                ServerAddress address =
-                        new ServerAddress(datastore.getAddress().getHost(), datastore.getAddress().getPort());
-                if (mc != null) {
-                    return new MongoClient(address, mc, getOptions(datastore));
-                } else {
-                    return new MongoClient(address, getOptions(datastore));
-                }
-            case REPLICA_SET:
-                // TODO check if it's right, not miss parameter like "replicaSet=myRepl"?
-                // https://docs.mongodb.com/manual/reference/connection-string/
-                if (mc != null) {
-                    return new MongoClient(getServerAddresses(datastore.getReplicaSetAddress()), mc,
-                            getOptions(datastore));
-                } else {
-                    return new MongoClient(getServerAddresses(datastore.getReplicaSetAddress()), getOptions(datastore));
-                }
-                /*
-                 * case SHARDED_CLUSTER:
-                 * if (mc != null) {
-                 * return new MongoClient(getServerAddresses(datastore.getShardedClusterAddress()), mc,
-                 * getOptions(datastore));
-                 * } else {
-                 * return new MongoClient(getServerAddresses(datastore.getShardedClusterAddress()),
-                 * getOptions(datastore));
-                 * }
-                 */
-            }
-            return null;
+            client = MongoClients.create(getMongoClientSettings(datastore));
         } catch (Exception e) {
             // TODO use i18n
             LOG.error(e.getMessage(), e);
-            throw new RuntimeException(e);
         }
+        return client;
     }
 
     private MongoCredential getMongoCredential(MongoCommonDataStore datastore) {
@@ -100,16 +71,20 @@ public class MongoCommonService {
 
         String authDatabase = auth.isUseAuthDatabase() ? auth.getAuthDatabase() : datastore.getDatabase();
         switch (auth.getAuthMech()) {
-        case NEGOTIATE:
-            return MongoCredential.createCredential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
-        /*
-         * case PLAIN_SASL:
-         * return MongoCredential.createPlainCredential(auth.getUsername(), "$external",
-         * auth.getPassword().toCharArray());
-         */
-        case SCRAM_SHA_1_SASL:
-            return MongoCredential
-                    .createScramSha1Credential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
+            case NEGOTIATE:
+                return MongoCredential.createCredential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
+            /*
+             * case PLAIN_SASL:
+             * return MongoCredential.createPlainCredential(auth.getUsername(), "$external",
+             * auth.getPassword().toCharArray());
+             */
+            case SCRAM_SHA_1_SASL:
+                return MongoCredential
+                        .createScramSha1Credential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
+
+            case SCRAM_SHA_256_SASL:
+                return MongoCredential.createScramSha256Credential(auth.getUsername(), authDatabase,
+                        auth.getPassword().toCharArray());
         }
 
         return null;
@@ -124,21 +99,45 @@ public class MongoCommonService {
     }
 
     // https://docs.mongodb.com/manual/reference/connection-string/#connection-string-options
-    public MongoClientOptions getOptions(MongoCommonDataStore datastore) {
-        StringBuilder uri = new StringBuilder("mongodb://noexist:27017/");// a fake uri, only work for get the options
-                                                                          // from key
-                                                                          // value string
-        boolean first = true;
-        for (ConnectionParameter parameter : datastore.getConnectionParameter()) {
-            if (first) {
-                uri.append('?');
-                first = false;
-            }
-            uri.append(parameter.getKey()).append('=').append(parameter.getValue()).append('&');
-        }
-        uri.deleteCharAt(uri.length() - 1);
-        MongoClientURI muri = new MongoClientURI(uri.toString());
+    public MongoClientSettings getMongoClientSettings(MongoCommonDataStore datastore) {
 
+        MongoClientSettings.Builder clientSettingsBuilder = MongoClientSettings.builder();
+
+//        StringBuilder uri = new StringBuilder("mongodb://noexist:27017/");// a fake uri, only work for get the options
+//        // from key
+//        // value string
+//        boolean first = true;
+//        for (ConnectionParameter parameter : datastore.getConnectionParameter()) {
+//            if (first) {
+//                uri.append('?');
+//                first = false;
+//            }
+//            uri.append(parameter.getKey()).append('=').append(parameter.getValue()).append('&');
+//        }
+//        uri.deleteCharAt(uri.length() - 1);
+        clientSettingsBuilder.applyConnectionString(new ConnectionString("mongodb://"+datastore.getAddress().getHost()+":"+datastore.getAddress().getPort()));
+
+        ClusterSettings.Builder clusterSettings = ClusterSettings.builder();
+        switch (datastore.getAddressType()) {
+            case STANDALONE:
+                List<ServerAddress> host = new ArrayList<>();
+                ServerAddress address =
+                        new ServerAddress(datastore.getAddress().getHost(), datastore.getAddress().getPort());
+                host.add(address);
+                clusterSettings.requiredClusterType(ClusterType.STANDALONE).hosts(host);
+                break;
+            case REPLICA_SET:
+                clusterSettings.requiredClusterType(ClusterType.REPLICA_SET)
+                        .hosts(getServerAddresses(datastore.getReplicaSetAddress()));
+                break;
+        }
+
+        MongoCredential credential = getMongoCredential(datastore);
+        if (credential != null) {
+            clientSettingsBuilder.credential(credential);
+        }
+
+        clientSettingsBuilder.applyToClusterSettings(cs -> cs.applySettings(clusterSettings.build()));
         // TODO call right set method by the list above
         // optionsBuilder.maxConnectionIdleTime(1000);
 
@@ -153,7 +152,69 @@ public class MongoCommonService {
          * }
          * }
          */
-        return muri.getOptions();
+//
+//        for (ConnectionParameter parameter : datastore.getConnectionParameter()) {
+//            switch(parameter.getKey()) {
+//                case MAINTENANCE_FREQUENCY:
+//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maintenanceFrequency(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
+//                    break;
+//                case MAINTENANCE_INITIAL_DELAY:
+//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maintenanceInitialDelay(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
+//                    break;
+//                case MAX_CONNECTING:
+//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maxConnecting(Integer.parseInt(parameter.getValue())));
+//                    break;
+//                case MAX_CONNECTION_IDLE_TIME:
+//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maxConnectionIdleTime(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
+//                    break;
+//                case MAX_CONNECTION_LIFE_TIME:
+//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maxConnectionLifeTime(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
+//                    break;
+//                case MAX_SIZE:
+//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maxSize(Integer.parseInt(parameter.getValue())));
+//                    break;
+//                case MIN_SIZE:
+//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.minSize(Integer.parseInt(parameter.getValue())));
+//                    break;
+//                case MAX_WAIT_TIME:
+//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maxWaitTime(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
+//                    break;
+//                case LOCAL_THRESHOLD:
+//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.localThreshold(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
+//                    break;
+//                case REQUIRED_REPLICA_SET_NAME:
+//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.requiredReplicaSetName(parameter.getValue()));
+//                    break;
+//                case SERVER_SELECTION_TIMEOUT:
+//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.serverSelectionTimeout(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
+//                    break;
+//                case SRV_HOST:
+//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.srvHost(parameter.getValue()));
+//                    break;
+//                case SRV_MAX_HOSTS:
+//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.srvMaxHosts(Integer.parseInt(parameter.getValue())));
+//                    break;
+//                case SRV_SERVICE_NAME:
+//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.srvServiceName(parameter.getValue()));
+//                    break;
+//                case HEARTBEAT_FREQUENCY:
+//                    clientSettingsBuilder.applyToServerSettings(builder -> builder.heartbeatFrequency(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
+//                    break;
+//                case MIN_HEARTBEAT_FREQUENCY:
+//                    clientSettingsBuilder.applyToServerSettings(builder -> builder.heartbeatFrequency(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
+//                    break;
+//                case SOCKET_CONNECT_TIMEOUT:
+//                    break;
+//                case SOCKET_READ_TIMEOUT:
+//                    break;
+//                case RECEIVE_BUFFER_SIZE:
+//                    break;
+//                case SEND_BUFFER_SIZE:
+//                    break;
+//            }
+//        }
+        MongoClientSettings settings = clientSettingsBuilder.build();
+        return settings;
     }
 
     public HealthCheckStatus healthCheck(final MongoCommonDataStore datastore) {
@@ -184,7 +245,8 @@ public class MongoCommonService {
 
     public BsonDocument getBsonDocument(String bson) {
         try {
-            return Document.parse(bson).toBsonDocument(BasicDBObject.class, MongoClient.getDefaultCodecRegistry());
+            return Document.parse(bson)
+                    .toBsonDocument(BasicDBObject.class, MongoClientSettings.getDefaultCodecRegistry());
         } catch (JsonParseException e) {
             Pattern pattern = Pattern.compile("^\\s*\\{\\s*\\$where\\s*:\\s*(function.+)\\}\\s*$", Pattern.DOTALL);
             Matcher matcher = pattern.matcher(bson);
@@ -264,7 +326,7 @@ public class MongoCommonService {
         return schemaBuilder.build();
     }
 
-    // use column diretly if path don't exists or empty
+    // use column directly if path don't exists or empty
     // current implement logic copy from studio one, not sure is expected, TODO adjust it
     public Object getValueByPathFromDocument(Document document, String parentNodePath, String elementName) {
         if (document == null) {
@@ -280,7 +342,7 @@ public class MongoCommonService {
             }
         } else {
             // use parent path to locate
-            String objNames[] = parentNodePath.split("\\.");
+            String[] objNames = parentNodePath.split("\\.");
             Document currentObj = document;
             for (int i = 0; i < objNames.length; i++) {
                 currentObj = (Document) currentObj.get(objNames[i]);

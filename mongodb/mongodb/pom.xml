@@ -17,12 +17,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongo-java-driver</artifactId>
-      <version>${mongodb.client.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.talend.components</groupId>
       <artifactId>stream-json</artifactId>
       <version>${project.version}</version>
@@ -55,7 +49,7 @@
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna</artifactId>
-      <version>${jna.version}</version>
+      <version>5.7.0</version>
       <scope>test</scope>
     </dependency>
 

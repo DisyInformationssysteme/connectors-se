@@ -19,6 +19,8 @@
     </modules>
 
     <properties>
-        <mongodb.client.version>3.12.11</mongodb.client.version>
+        <mongodb-driver-sync.version>4.10.2</mongodb-driver-sync.version>
+        <mongodb-driver-core.version>4.10.2</mongodb-driver-core.version>
+        <bson.version>4.10.2</bson.version>
     </properties>
 </project>

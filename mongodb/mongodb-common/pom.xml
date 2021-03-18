@@ -15,10 +15,19 @@
     <dependencies>
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>${mongodb.client.version}</version>
+            <artifactId>mongodb-driver-core</artifactId>
+            <version>${mongodb-driver-core.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>${mongodb-driver-sync.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>${bson.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.talend.components</groupId>
             <artifactId>stream-json</artifactId>
