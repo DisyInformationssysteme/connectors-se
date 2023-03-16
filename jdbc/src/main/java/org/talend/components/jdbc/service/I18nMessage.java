@@ -101,4 +101,6 @@ public interface I18nMessage {
     String errorCantDiscoverDataset(String error);
 
     String errorAccessTokenResponse(String errorDescription);
+
+    String warnSQLInjection(String identifier);
 }

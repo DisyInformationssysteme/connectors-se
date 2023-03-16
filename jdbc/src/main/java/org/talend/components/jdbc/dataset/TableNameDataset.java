@@ -20,6 +20,7 @@ import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.action.Updatable;
+import org.talend.sdk.component.api.configuration.action.Validable;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -29,6 +30,7 @@ import static java.util.Optional.ofNullable;
 import static org.talend.components.jdbc.service.UIActionService.ACTION_DEFAULT_VALUES;
 import static org.talend.components.jdbc.service.UIActionService.ACTION_SUGGESTION_TABLE_NAMES;
 import static org.talend.components.jdbc.service.UIActionService.ACTION_LIST_COLUMNS;
+import static org.talend.components.jdbc.service.UIActionService.ACTION_VALIDATION_SQL_INJECTION;
 import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
 
 import java.util.List;
@@ -53,6 +55,7 @@ public class TableNameDataset implements BaseDataSet {
     @Required
     @Documentation("The table name")
     @Suggestable(value = ACTION_SUGGESTION_TABLE_NAMES, parameters = "connection")
+    @Validable(ACTION_VALIDATION_SQL_INJECTION)
     private String tableName;
 
     @Option

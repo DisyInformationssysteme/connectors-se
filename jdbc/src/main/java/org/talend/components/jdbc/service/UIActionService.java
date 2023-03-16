@@ -86,6 +86,8 @@ public class UIActionService {
 
     private static final String ACTION_DISCOVER_SCHEMA = "ACTION_DISCOVER_SCHEMA";
 
+    public static final String ACTION_VALIDATION_SQL_INJECTION = "ACTION_VALIDATION_SQL_INJECTION";
+
     @Service
     private JdbcService jdbcService;
 
@@ -336,5 +338,16 @@ public class UIActionService {
 
         final String type;
     }
+
+    @AsyncValidation(ACTION_VALIDATION_SQL_INJECTION)
+    public ValidationResult validateSQLInjection(final String identifier) {
+        if (jdbcService.checkSQLInjection(identifier)) {
+            log.warn(i18n.warnSQLInjection(identifier));
+            return new ValidationResult(ValidationResult.Status.OK, i18n.warnSQLInjection(identifier));
+            //no exception for SQL injection validation
+        }
+        return new ValidationResult(ValidationResult.Status.OK, "the table name is valid");
+    }
+
 
 }
