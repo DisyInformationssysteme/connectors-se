@@ -164,6 +164,11 @@
             <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.talend.components.lib</groupId>
+            <artifactId>talend-sql-injection-utils</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

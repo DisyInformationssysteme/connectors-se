@@ -17,6 +17,7 @@ import static java.util.Comparator.comparingInt;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
+import org.talend.components.lib.SQLInjectionCheckUtil;
 import org.talend.sdk.component.api.service.update.Update;
 
 import java.sql.Connection;
@@ -341,13 +342,13 @@ public class UIActionService {
 
     @AsyncValidation(ACTION_VALIDATION_SQL_INJECTION)
     public ValidationResult validateSQLInjection(final String identifier) {
-        if (jdbcService.checkSQLInjection(identifier)) {
+
+        if (SQLInjectionCheckUtil.checkSQLInjection(identifier)) {
             log.warn(i18n.warnSQLInjection(identifier));
             return new ValidationResult(ValidationResult.Status.OK, i18n.warnSQLInjection(identifier));
-            //no exception for SQL injection validation
+            // no exception for SQL injection validation
         }
         return new ValidationResult(ValidationResult.Status.OK, "the table name is valid");
     }
-
 
 }

@@ -600,27 +600,4 @@ public class JdbcService {
             break;
         }
     }
-
-    public boolean checkSQLInjection(String identifier){
-        if(identifier.length() > 255){
-            return true;
-        }
-        String[] riskyChar = {"\"",";","'","--","/*","xp_","="};
-        for (String s : riskyChar) {
-            if(identifier.contains(s)){
-                log.warn(i18n.warnSQLInjection(identifier));
-                return true;
-            }
-        }
-        String[] riskyWords = {"DROP ","SELECT ","INSERT ","CREATE ","UPDATE ","ALTER ","LIKE ", "SHOW ","USE ","OR "};
-        final String upperCase = identifier.toUpperCase();
-        for (String word : riskyWords) {
-            if(upperCase.contains(word)){
-                log.warn(i18n.warnSQLInjection(identifier));
-                return true;
-            }
-        }
-        return false;
-    }
-
 }
