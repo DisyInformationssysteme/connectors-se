@@ -1,0 +1,58 @@
+[
+
+	{
+		"id" : "DATABRICKS_DELTA_LAKE",
+		"displayName" : "Delta Lake",
+		"class" : "com.databricks.client.jdbc.Driver",
+		"url" : "jdbc:databricks://",
+		"paths" : 
+	 	[
+	 		{"path" : "mvn:com.databricks/databricks-jdbc/2.6.32/jar"}
+	 	],
+		"excludes": [{
+				"component": "tJDBCSP"
+			},
+			{
+				"component": "tJDBCCommit"
+			},
+			{
+				"component": "tJDBCRollback"
+			},
+			{
+				"component": "tJDBCOutputBulk"
+			},
+			{
+				"component": "tJDBCBulkExec"
+			},
+			{
+				"component": "tJDBCOutputBulkExec"
+			}
+		],
+		"configuration": [{
+				"component": "tDeltaLakeConnection",
+				"parameters": [{
+						"name": "use_autocommit",
+						"value": "true"
+					},
+					{
+						"name": "autocommit",
+						"value": "true"
+					}
+				]
+			}
+		]
+	
+	},
+	
+	{
+		"id" : "SINGLESTORE",
+		"displayName" : "SingleStore",
+		"class" : "org.mariadb.jdbc.Driver",
+		"url" : "jdbc:mariadb://",
+		"paths" : 
+	 	[
+	 		{"path" : "mvn:org.mariadb.jdbc/mariadb-java-client/2.5.3/jar"}
+	 	]
+	}
+
+]
