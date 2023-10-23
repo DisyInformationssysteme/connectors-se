@@ -136,7 +136,16 @@
           <artifactId>fastutil</artifactId>
           <groupId>it.unimi.dsi</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>org.xerial.snappy</groupId>
+          <artifactId>snappy-java</artifactId>
+        </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.xerial.snappy</groupId>
+      <artifactId>snappy-java</artifactId>
+      <version>${snappy.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>

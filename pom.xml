@@ -153,7 +153,7 @@
 
         <bouncycastle.version>1.73</bouncycastle.version>
         <pgpainless.version>1.5.1</pgpainless.version>
-        <snappy.version>1.1.10.1</snappy.version>
+        <snappy.version>1.1.10.4</snappy.version>
 
         <!-- code quality enforcer default values.
              run build w/ -Pcode-quality to have a full validation -->
