@@ -18,6 +18,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.connection.ConnectionPoolSettings;
+import com.mongodb.connection.SocketSettings;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.junit.jupiter.api.*;
@@ -53,6 +54,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @WithComponents("org.talend.components.mongodb")
@@ -350,7 +352,7 @@ public class MongoDBTest {
     void testGetMongoClientSettings() {
         MongoDBDataStore datastore = new MongoDBDataStore();
         List<ConnectionParameter> cp = Arrays
-                .asList(new ConnectionParameter("connectTimeoutMS", "300000"),
+                .asList(new ConnectionParameter("connectTimeoutMS", "23412"),
                         new ConnectionParameter("appName", "myapp"));
         datastore.setConnectionParameter(cp);
         datastore.setAddress(new Address("address1", 27017));
@@ -362,7 +364,9 @@ public class MongoDBTest {
         // options = mongoDBService.getOptions(datastore);
         // Assertions.assertNull(options.getApplicationName());
         MongoClientSettings settings = mongoDBService.getMongoClientSettings(datastore);
-        ConnectionPoolSettings poolSettings = settings.getConnectionPoolSettings();
+        SocketSettings socketSettings = settings.getSocketSettings();
+        Assertions.assertEquals(23412, socketSettings.getConnectTimeout(TimeUnit.MILLISECONDS));
+        Assertions.assertEquals("myapp", settings.getApplicationName());
     }
 
     private void executeSourceTestJob(MongoCommonSourceConfiguration configuration) {

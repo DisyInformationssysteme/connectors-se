@@ -18,7 +18,6 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.connection.ClusterSettings;
 import com.mongodb.connection.ClusterType;
-import com.mongodb.connection.ServerDescription;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
@@ -36,7 +35,6 @@ import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,7 +63,7 @@ public class MongoCommonService {
 
     private MongoCredential getMongoCredential(MongoCommonDataStore datastore) {
         Auth auth = datastore.getAuth();
-        if (!auth.isNeedAuth()) {
+        if (auth == null || !auth.isNeedAuth()) {
             return null;
         }
 
@@ -90,12 +88,12 @@ public class MongoCommonService {
         return null;
     }
 
-    private List<ServerAddress> getServerAddresses(List<Address> addresses) {
-        List<ServerAddress> result = new ArrayList<>();
+    private void getServerAddresses(List<Address> addresses, StringBuilder uri) {
         for (Address address : addresses) {
-            result.add(new ServerAddress(address.getHost(), address.getPort()));
+            uri.append(address.getHost()).append(":").append(address.getPort()).append(",");
         }
-        return result;
+        uri.deleteCharAt(uri.length() - 1 );
+        uri.append("/");
     }
 
     // https://docs.mongodb.com/manual/reference/connection-string/#connection-string-options
@@ -103,41 +101,40 @@ public class MongoCommonService {
 
         MongoClientSettings.Builder clientSettingsBuilder = MongoClientSettings.builder();
 
-//        StringBuilder uri = new StringBuilder("mongodb://noexist:27017/");// a fake uri, only work for get the options
-//        // from key
-//        // value string
-//        boolean first = true;
-//        for (ConnectionParameter parameter : datastore.getConnectionParameter()) {
-//            if (first) {
-//                uri.append('?');
-//                first = false;
-//            }
-//            uri.append(parameter.getKey()).append('=').append(parameter.getValue()).append('&');
-//        }
-//        uri.deleteCharAt(uri.length() - 1);
-        clientSettingsBuilder.applyConnectionString(new ConnectionString("mongodb://"+datastore.getAddress().getHost()+":"+datastore.getAddress().getPort()));
+        StringBuilder uri = new StringBuilder("mongodb://");
+        // from key
+        // value string
 
         ClusterSettings.Builder clusterSettings = ClusterSettings.builder();
         switch (datastore.getAddressType()) {
             case STANDALONE:
-                List<ServerAddress> host = new ArrayList<>();
-                ServerAddress address =
-                        new ServerAddress(datastore.getAddress().getHost(), datastore.getAddress().getPort());
-                host.add(address);
-                clusterSettings.requiredClusterType(ClusterType.STANDALONE).hosts(host);
+                uri.append(datastore.getAddress().getHost()).append(":").append(datastore.getAddress().getPort()).append("/");
+                clusterSettings.requiredClusterType(ClusterType.STANDALONE);
                 break;
             case REPLICA_SET:
-                clusterSettings.requiredClusterType(ClusterType.REPLICA_SET)
-                        .hosts(getServerAddresses(datastore.getReplicaSetAddress()));
+                getServerAddresses(datastore.getReplicaSetAddress(), uri);
+                clusterSettings.requiredClusterType(ClusterType.REPLICA_SET);
                 break;
         }
+
+        boolean first = true;
+        for (ConnectionParameter parameter : datastore.getConnectionParameter()) {
+            if (first) {
+                uri.append('?');
+                first = false;
+            }
+            uri.append(parameter.getKey()).append('=').append(parameter.getValue()).append('&');
+        }
+        uri.deleteCharAt(uri.length() - 1);
+
+        clientSettingsBuilder.applyConnectionString(new ConnectionString(uri.toString()));
 
         MongoCredential credential = getMongoCredential(datastore);
         if (credential != null) {
             clientSettingsBuilder.credential(credential);
         }
 
-        clientSettingsBuilder.applyToClusterSettings(cs -> cs.applySettings(clusterSettings.build()));
+        //clientSettingsBuilder.applyToClusterSettings(cs -> cs.applySettings(clusterSettings.build()));
         // TODO call right set method by the list above
         // optionsBuilder.maxConnectionIdleTime(1000);
 
@@ -152,67 +149,6 @@ public class MongoCommonService {
          * }
          * }
          */
-//
-//        for (ConnectionParameter parameter : datastore.getConnectionParameter()) {
-//            switch(parameter.getKey()) {
-//                case MAINTENANCE_FREQUENCY:
-//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maintenanceFrequency(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
-//                    break;
-//                case MAINTENANCE_INITIAL_DELAY:
-//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maintenanceInitialDelay(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
-//                    break;
-//                case MAX_CONNECTING:
-//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maxConnecting(Integer.parseInt(parameter.getValue())));
-//                    break;
-//                case MAX_CONNECTION_IDLE_TIME:
-//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maxConnectionIdleTime(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
-//                    break;
-//                case MAX_CONNECTION_LIFE_TIME:
-//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maxConnectionLifeTime(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
-//                    break;
-//                case MAX_SIZE:
-//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maxSize(Integer.parseInt(parameter.getValue())));
-//                    break;
-//                case MIN_SIZE:
-//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.minSize(Integer.parseInt(parameter.getValue())));
-//                    break;
-//                case MAX_WAIT_TIME:
-//                    clientSettingsBuilder.applyToConnectionPoolSettings(builder -> builder.maxWaitTime(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
-//                    break;
-//                case LOCAL_THRESHOLD:
-//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.localThreshold(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
-//                    break;
-//                case REQUIRED_REPLICA_SET_NAME:
-//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.requiredReplicaSetName(parameter.getValue()));
-//                    break;
-//                case SERVER_SELECTION_TIMEOUT:
-//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.serverSelectionTimeout(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
-//                    break;
-//                case SRV_HOST:
-//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.srvHost(parameter.getValue()));
-//                    break;
-//                case SRV_MAX_HOSTS:
-//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.srvMaxHosts(Integer.parseInt(parameter.getValue())));
-//                    break;
-//                case SRV_SERVICE_NAME:
-//                    clientSettingsBuilder.applyToClusterSettings(builder -> builder.srvServiceName(parameter.getValue()));
-//                    break;
-//                case HEARTBEAT_FREQUENCY:
-//                    clientSettingsBuilder.applyToServerSettings(builder -> builder.heartbeatFrequency(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
-//                    break;
-//                case MIN_HEARTBEAT_FREQUENCY:
-//                    clientSettingsBuilder.applyToServerSettings(builder -> builder.heartbeatFrequency(Long.parseLong(parameter.getValue()), TimeUnit.MILLISECONDS));
-//                    break;
-//                case SOCKET_CONNECT_TIMEOUT:
-//                    break;
-//                case SOCKET_READ_TIMEOUT:
-//                    break;
-//                case RECEIVE_BUFFER_SIZE:
-//                    break;
-//                case SEND_BUFFER_SIZE:
-//                    break;
-//            }
-//        }
         MongoClientSettings settings = clientSettingsBuilder.build();
         return settings;
     }
