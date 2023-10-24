@@ -67,20 +67,16 @@ public class MongoCommonService {
             return null;
         }
 
-        String authDatabase = auth.isUseAuthDatabase()?auth.getAuthDatabase():datastore.getDatabase();
+        String authDatabase = auth.isUseAuthDatabase() ? auth.getAuthDatabase() : datastore.getDatabase();
         switch (auth.getAuthMech()) {
         case NEGOTIATE:
             return MongoCredential.createCredential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
-        /*
-         * case PLAIN_SASL:
-         * return MongoCredential.createPlainCredential(auth.getUsername(), "$external",
-         * auth.getPassword().toCharArray());
-         */
         case SCRAM_SHA_1_SASL:
-            return MongoCredential.createScramSha1Credential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
-
+            return MongoCredential.createScramSha1Credential(auth.getUsername(), authDatabase,
+                    auth.getPassword().toCharArray());
         case SCRAM_SHA_256_SASL:
-            return MongoCredential.createScramSha256Credential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
+            return MongoCredential.createScramSha256Credential(auth.getUsername(), authDatabase,
+                    auth.getPassword().toCharArray());
         }
 
         return null;
