@@ -49,7 +49,7 @@
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna</artifactId>
-      <version>5.7.0</version>
+      <version>${jna.version}</version>
       <scope>test</scope>
     </dependency>
 
