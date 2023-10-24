@@ -12,6 +12,7 @@
  */
 package org.talend.components.jdbc.input;
 
+import static java.util.Locale.ROOT;
 import static org.talend.components.jdbc.ErrorFactory.toIllegalStateException;
 
 import java.io.Serializable;
@@ -25,6 +26,7 @@ import javax.annotation.PreDestroy;
 import org.jooq.impl.ParserException;
 import org.talend.components.jdbc.configuration.InputConfig;
 import org.talend.components.jdbc.dataset.BaseDataSet;
+import org.talend.components.jdbc.output.platforms.MariaDbPlatform;
 import org.talend.components.jdbc.output.platforms.Platform;
 import org.talend.components.jdbc.service.I18nMessage;
 import org.talend.components.jdbc.service.JdbcService;
@@ -107,8 +109,13 @@ public abstract class AbstractInputEmitter implements Serializable {
             }
             final Record.Builder recordBuilder = recordBuilderFactory.newRecordBuilder(schema);
             final List<Schema.Entry> columns = Optional.ofNullable(schema.getEntries()).orElse(Collections.emptyList());
+            final String dbType = inputConfig.getDataSet().getConnection().getDbType().toLowerCase(ROOT);
             for (int index = 0; index < columns.size(); index++) {
-                jdbcDriversService.addColumn(recordBuilder, columns.get(index), resultSet.getObject(index + 1));
+                if (MariaDbPlatform.MARIADB.equals(dbType) && "BYTES".equals(columns.get(index).getType().name())) {
+                    jdbcDriversService.addColumn(recordBuilder, columns.get(index), resultSet.getBytes(index + 1));
+                } else {
+                    jdbcDriversService.addColumn(recordBuilder, columns.get(index), resultSet.getObject(index + 1));
+                }
             }
             return recordBuilder.build();
         } catch (final SQLException e) {
