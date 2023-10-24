@@ -61,38 +61,36 @@ public class MongoCommonService {
         return client;
     }
 
-    private MongoCredential getMongoCredential(MongoCommonDataStore datastore) {
+    protected MongoCredential getMongoCredential(MongoCommonDataStore datastore) {
         Auth auth = datastore.getAuth();
         if (auth == null || !auth.isNeedAuth()) {
             return null;
         }
 
-        String authDatabase = auth.isUseAuthDatabase() ? auth.getAuthDatabase() : datastore.getDatabase();
+        String authDatabase = auth.isUseAuthDatabase()?auth.getAuthDatabase():datastore.getDatabase();
         switch (auth.getAuthMech()) {
-            case NEGOTIATE:
-                return MongoCredential.createCredential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
-            /*
-             * case PLAIN_SASL:
-             * return MongoCredential.createPlainCredential(auth.getUsername(), "$external",
-             * auth.getPassword().toCharArray());
-             */
-            case SCRAM_SHA_1_SASL:
-                return MongoCredential
-                        .createScramSha1Credential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
+        case NEGOTIATE:
+            return MongoCredential.createCredential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
+        /*
+         * case PLAIN_SASL:
+         * return MongoCredential.createPlainCredential(auth.getUsername(), "$external",
+         * auth.getPassword().toCharArray());
+         */
+        case SCRAM_SHA_1_SASL:
+            return MongoCredential.createScramSha1Credential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
 
-            case SCRAM_SHA_256_SASL:
-                return MongoCredential.createScramSha256Credential(auth.getUsername(), authDatabase,
-                        auth.getPassword().toCharArray());
+        case SCRAM_SHA_256_SASL:
+            return MongoCredential.createScramSha256Credential(auth.getUsername(), authDatabase, auth.getPassword().toCharArray());
         }
 
         return null;
     }
 
-    private void getServerAddresses(List<Address> addresses, StringBuilder uri) {
+    protected void getServerAddresses(List<Address> addresses, StringBuilder uri) {
         for (Address address : addresses) {
             uri.append(address.getHost()).append(":").append(address.getPort()).append(",");
         }
-        uri.deleteCharAt(uri.length() - 1 );
+        uri.deleteCharAt(uri.length() - 1);
         uri.append("/");
     }
 
@@ -107,14 +105,17 @@ public class MongoCommonService {
 
         ClusterSettings.Builder clusterSettings = ClusterSettings.builder();
         switch (datastore.getAddressType()) {
-            case STANDALONE:
-                uri.append(datastore.getAddress().getHost()).append(":").append(datastore.getAddress().getPort()).append("/");
-                clusterSettings.requiredClusterType(ClusterType.STANDALONE);
-                break;
-            case REPLICA_SET:
-                getServerAddresses(datastore.getReplicaSetAddress(), uri);
-                clusterSettings.requiredClusterType(ClusterType.REPLICA_SET);
-                break;
+        case STANDALONE:
+            uri.append(datastore.getAddress().getHost())
+                    .append(":")
+                    .append(datastore.getAddress().getPort())
+                    .append("/");
+            clusterSettings.requiredClusterType(ClusterType.STANDALONE);
+            break;
+        case REPLICA_SET:
+            getServerAddresses(datastore.getReplicaSetAddress(), uri);
+            clusterSettings.requiredClusterType(ClusterType.REPLICA_SET);
+            break;
         }
 
         boolean first = true;
@@ -134,7 +135,7 @@ public class MongoCommonService {
             clientSettingsBuilder.credential(credential);
         }
 
-        //clientSettingsBuilder.applyToClusterSettings(cs -> cs.applySettings(clusterSettings.build()));
+        // clientSettingsBuilder.applyToClusterSettings(cs -> cs.applySettings(clusterSettings.build()));
         // TODO call right set method by the list above
         // optionsBuilder.maxConnectionIdleTime(1000);
 
