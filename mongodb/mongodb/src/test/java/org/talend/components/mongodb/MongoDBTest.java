@@ -356,15 +356,10 @@ public class MongoDBTest {
                         new ConnectionParameter("appName", "myapp"));
         datastore.setConnectionParameter(cp);
         datastore.setAddress(new Address("address1", 27017));
-        // MongoClientOptions options = mongoDBService.getOptions(datastore);
-        // Assertions.assertEquals(300000, options.getConnectTimeout());
-        // Assertions.assertEquals("myapp", options.getApplicationName());
-        //
-        // datastore.setConnectionParameter(Collections.emptyList());
-        // options = mongoDBService.getOptions(datastore);
-        // Assertions.assertNull(options.getApplicationName());
+
         MongoClientSettings settings = mongoDBService.getMongoClientSettings(datastore);
         SocketSettings socketSettings = settings.getSocketSettings();
+
         Assertions.assertEquals(23412, socketSettings.getConnectTimeout(TimeUnit.MILLISECONDS));
         Assertions.assertEquals("myapp", settings.getApplicationName());
     }
