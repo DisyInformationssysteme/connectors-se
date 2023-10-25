@@ -12,10 +12,11 @@
  */
 package org.talend.components.http.configuration.proxy;
 
+import java.io.Serializable;
+
 import org.talend.components.common.httpclient.api.ProxyConfiguration;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
-import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
@@ -29,7 +30,7 @@ import lombok.Data;
         @GridLayout.Row({ "proxyHost", "proxyPort" }),
         @GridLayout.Row({ "proxyLogin", "proxyPassword" })
 })
-public class ProxyConfig {
+public class ProxyConfig implements Serializable {
 
     @Option
     @Documentation("Proxy's type.")
