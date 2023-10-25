@@ -12,26 +12,26 @@
  */
 package org.talend.components.http.configuration;
 
-import lombok.Data;
-import org.talend.components.common.httpclient.api.ProxyConfiguration;
+import java.io.Serializable;
+
 import org.talend.components.http.configuration.auth.Authentication;
+import org.talend.components.http.configuration.proxy.ProxyConfig;
+import org.talend.components.http.migration.HttpClientDatastoreMigrationHandler;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
-import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
 import org.talend.sdk.component.api.configuration.constraint.Min;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.type.DataStore;
 import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
-import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
+import lombok.Data;
 
 @Data
-@Version(Datastore.VERSION)
+@Version(value = Datastore.VERSION, migrationHandler = HttpClientDatastoreMigrationHandler.class)
 @DataStore("Datastore")
 @GridLayout({ @GridLayout.Row({ "base" }), //
         @GridLayout.Row({ "authentication" }) //
@@ -40,14 +40,12 @@ import java.io.Serializable;
         @GridLayout.Row({ "receiveTimeout" }),
         @GridLayout.Row({ "bypassCertificateValidation" }),
         @GridLayout.Row({ "useProxy" }),
-        @GridLayout.Row({ "proxyType" }),
-        @GridLayout.Row({ "proxyHost", "proxyPort" }),
-        @GridLayout.Row({ "proxyLogin", "proxyPassword" })
+        @GridLayout.Row({ "proxyConfiguration" })
 })
 @Documentation("HTTP connection configuration.")
 public class Datastore implements Serializable {
 
-    public final static int VERSION = 1;
+    public final static int VERSION = 2;
 
     @Option
     @Required
@@ -83,40 +81,8 @@ public class Datastore implements Serializable {
     private boolean useProxy;
 
     @Option
-    @Documentation("Proxy's type.")
     @ActiveIf(target = "useProxy", value = "true")
-    @DefaultValue("HTTP")
-    private ProxyConfiguration.ProxyType proxyType = ProxyConfiguration.ProxyType.HTTP;
-
-    // TODO: remove default value once https://jira.talendforge.org/browse/TCOMP-2260 is done.
-    @Option
-    @Documentation("Proxy's host.")
-    @ActiveIf(target = "useProxy", value = "true")
-    private String proxyHost;
-
-    @Option
-    @Documentation("Proxy's port.")
-    @ActiveIf(target = "useProxy", value = "true")
-    @DefaultValue("443")
-    private int proxyPort = 443;
-
-    @Option
-    @Documentation("Proxy's login.")
-    @ActiveIfs(value = {
-            // TODO: Currently, SOCKS with required authentication is not working:
-            // https://jira.talendforge.org/browse/TDI-48466
-            @ActiveIf(target = "useProxy", value = "true"),
-            @ActiveIf(target = "proxyType", value = "HTTP"),
-    }, operator = ActiveIfs.Operator.AND)
-    private String proxyLogin;
-
-    @Option
-    @Documentation("Proxy's password.")
-    @Credential
-    @ActiveIfs(value = {
-            @ActiveIf(target = "useProxy", value = "true"),
-            @ActiveIf(target = "proxyType", value = "HTTP"),
-    }, operator = ActiveIfs.Operator.AND)
-    private String proxyPassword;
+    @Documentation("Proxy configuration.")
+    private ProxyConfig proxyConfiguration = new ProxyConfig();
 
 }
