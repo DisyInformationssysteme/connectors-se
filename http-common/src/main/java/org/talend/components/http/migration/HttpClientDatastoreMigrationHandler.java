@@ -27,15 +27,21 @@ public class HttpClientDatastoreMigrationHandler implements MigrationHandler {
     }
 
     static void migrateProxyConfig(Map<String, String> incomingData, String version1ProxyConfigPathPrefix) {
-        incomingData.put(version1ProxyConfigPathPrefix + "proxyConfiguration.proxyType",
-                incomingData.remove(version1ProxyConfigPathPrefix + "proxyType"));
-        incomingData.put(version1ProxyConfigPathPrefix + "proxyConfiguration.proxyHost",
-                incomingData.remove(version1ProxyConfigPathPrefix + "proxyHost"));
-        incomingData.put(version1ProxyConfigPathPrefix + "proxyConfiguration.proxyPort",
-                incomingData.remove(version1ProxyConfigPathPrefix + "proxyPort"));
-        incomingData.put(version1ProxyConfigPathPrefix + "proxyConfiguration.proxyLogin",
-                incomingData.remove(version1ProxyConfigPathPrefix + "proxyLogin"));
-        incomingData.put(version1ProxyConfigPathPrefix + "proxyConfiguration.proxyPassword",
-                incomingData.remove(version1ProxyConfigPathPrefix + "proxyPassword"));
+        putIfNotNull(incomingData, version1ProxyConfigPathPrefix + "proxyType",
+                version1ProxyConfigPathPrefix + "proxyConfiguration.proxyType");
+        putIfNotNull(incomingData, version1ProxyConfigPathPrefix + "proxyHost",
+                version1ProxyConfigPathPrefix + "proxyConfiguration.proxyHost");
+        putIfNotNull(incomingData, version1ProxyConfigPathPrefix + "proxyPort",
+                version1ProxyConfigPathPrefix + "proxyConfiguration.proxyPort");
+        putIfNotNull(incomingData, version1ProxyConfigPathPrefix + "proxyLogin",
+                version1ProxyConfigPathPrefix + "proxyConfiguration.proxyLogin");
+        putIfNotNull(incomingData, version1ProxyConfigPathPrefix + "proxyPassword",
+                version1ProxyConfigPathPrefix + "proxyConfiguration.proxyPassword");
+    }
+
+    private static void putIfNotNull(Map<String, String> configMap, String from, String to) {
+        if (configMap.containsKey(from) && configMap.get(from) != null) {
+            configMap.put(to, configMap.remove(from));
+        }
     }
 }

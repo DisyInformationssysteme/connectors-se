@@ -22,7 +22,7 @@ public class HttpClientMigrationTest {
 
     @Test
     public void testMigrateDatasetProxy() {
-        Map<String,String> version1ProxyConfig = new HashMap<>();
+        Map<String, String> version1ProxyConfig = new HashMap<>();
 
         String typeValue = "valueType";
         String hostValue = "valueHost";
