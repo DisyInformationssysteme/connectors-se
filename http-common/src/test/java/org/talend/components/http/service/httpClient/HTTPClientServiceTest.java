@@ -30,6 +30,7 @@ import org.talend.components.common.httpclient.api.QueryConfiguration;
 import org.talend.components.http.TestUtil;
 import org.talend.components.http.configuration.Dataset;
 import org.talend.components.http.configuration.Datastore;
+import org.talend.components.http.configuration.Header;
 import org.talend.components.http.configuration.Param;
 import org.talend.components.http.configuration.RequestBody;
 import org.talend.components.http.configuration.RequestConfig;
@@ -357,8 +358,12 @@ class HTTPClientServiceTest {
         this.config.getDataset().getQueryParams().add(new Param("zip", "(({.input.user.address.city.zip}))"));
 
         this.config.getDataset().setHasHeaders(true);
-        this.config.getDataset().getHeaders().add(new Param("Accept", "application/{.input.site._format}"));
-        this.config.getDataset().getHeaders().add(new Param("Authorization", "Baerer {.input.site._key}"));
+        this.config.getDataset()
+                .getHeaders()
+                .add(new Header("Accept", "application/{.input.site._format}", Header.HEADER_QUERY_DESTINATION.MAIN));
+        this.config.getDataset()
+                .getHeaders()
+                .add(new Header("Authorization", "Baerer {.input.site._key}", Header.HEADER_QUERY_DESTINATION.MAIN));
 
         this.config.getDataset().setHasBody(true);
         this.config.getDataset().setBody(new RequestBody());

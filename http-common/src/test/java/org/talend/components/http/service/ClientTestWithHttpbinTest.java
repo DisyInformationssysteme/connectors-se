@@ -37,6 +37,7 @@ import org.talend.components.common.httpclient.api.HTTPClientException;
 import org.talend.components.common.httpclient.api.HTTPMethod;
 import org.talend.components.common.httpclient.api.QueryConfiguration;
 import org.talend.components.http.configuration.Format;
+import org.talend.components.http.configuration.Header;
 import org.talend.components.http.configuration.Param;
 import org.talend.components.http.configuration.RequestBody;
 import org.talend.components.http.configuration.RequestConfig;
@@ -198,8 +199,8 @@ public class ClientTestWithHttpbinTest {
         config.getDataset().setHasQueryParams(false);
         config.getDataset().setQueryParams(queryParams);
 
-        List<Param> headerParams = new ArrayList<>();
-        headerParams.add(new Param("Header1", "simple value"));
+        List<Header> headerParams = new ArrayList<>();
+        headerParams.add(new Header("Header1", "simple value", Header.HEADER_QUERY_DESTINATION.MAIN));
         config.getDataset().setHasHeaders(false);
         config.getDataset().setHeaders(headerParams);
 
@@ -235,9 +236,10 @@ public class ClientTestWithHttpbinTest {
             config.getDataset().setHasQueryParams(true);
             config.getDataset().setQueryParams(queryParams);
 
-            List<Param> headerParams = new ArrayList<>();
-            headerParams.add(new Param("Header1", "simple value"));
-            headerParams.add(new Param("Header2", "<name>header Dupont & Dupond</name>"));
+            List<Header> headerParams = new ArrayList<>();
+            headerParams.add(new Header("Header1", "simple value", Header.HEADER_QUERY_DESTINATION.MAIN));
+            headerParams.add(
+                    new Header("Header2", "<name>header Dupont & Dupond</name>", Header.HEADER_QUERY_DESTINATION.MAIN));
             config.getDataset().setHasHeaders(true);
             config.getDataset().setHeaders(headerParams);
 

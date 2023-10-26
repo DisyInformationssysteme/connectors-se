@@ -14,14 +14,21 @@ package org.talend.components.common.httpclient.api.authentication;
 
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.stream.JsonParser;
 
+import lombok.Getter;
 import org.talend.components.common.httpclient.api.DefaultConfigurationValues;
 import org.talend.components.common.httpclient.api.HTTPClient;
 import org.talend.components.common.httpclient.api.HTTPClientException;
+import org.talend.components.common.httpclient.api.KeyValuePair;
 import org.talend.components.common.httpclient.api.QueryConfiguration;
 import org.talend.components.common.httpclient.factory.HTTPClientFactory;
 
@@ -33,10 +40,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OAuth20FlowExecution {
 
+    @Getter
     private QueryConfiguration config;
 
     public OAuth20FlowExecution(QueryConfiguration config) {
         this.config = config;
+        manageParameters();
     }
 
     public Token executeFlow() throws HTTPClientException {
@@ -115,6 +124,38 @@ public class OAuth20FlowExecution {
         log.info(String.format("New OAuth2.0 token retrieved from '%s'.", this.config.getUrl()));
 
         return token;
+    }
+
+    private void manageParameters() {
+
+        /* We shoulld do nothing
+        Map<String, String> params = new HashMap<>();
+        for (KeyValuePair kvp : this.config.getBodyQueryParams()) {
+            String key = kvp.getKey();
+            String currentValue = params.getOrDefault(key, "");
+
+            String value = Optional.ofNullable(kvp.getValue()).orElse("");
+
+            String sep = ";";
+            if (currentValue.isEmpty() || value.isEmpty()) {
+                sep = "";
+            } else if (OAuth20.Keys.scope.name().compareToIgnoreCase(key) == 0) {
+                sep = " ";
+            }
+
+            currentValue = currentValue + sep + value;
+            params.put(key, currentValue);
+        }
+
+        List<KeyValuePair> concatenated = params.entrySet()
+                .stream()
+                .map(e -> new KeyValuePair(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+
+
+
+        this.config.setBodyQueryParams(concatenated);
+         */
     }
 
 }

@@ -145,7 +145,7 @@ public class Dataset implements Serializable {
     @Option
     @ActiveIf(target = "hasHeaders", value = "true")
     @Documentation("Query headers.")
-    private List<Param> headers = new ArrayList<>();
+    private List<Header> headers = new ArrayList<>();
 
     @Option
     @Documentation("Activate to define query parameters.")

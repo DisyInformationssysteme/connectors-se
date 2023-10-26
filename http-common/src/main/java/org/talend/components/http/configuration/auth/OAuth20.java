@@ -12,23 +12,30 @@
  */
 package org.talend.components.http.configuration.auth;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.talend.components.http.configuration.Param;
+import org.talend.components.http.service.UIService;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.constraint.Pattern;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Data
 @GridLayout(value = { @GridLayout.Row({ "flow", "authenticationType" }),
         @GridLayout.Row({ "tokenEndpoint" }),
         @GridLayout.Row({ "clientId", "clientSecret" }),
-        @GridLayout.Row({ "scopes" })
+        @GridLayout.Row({ "params" })
 })
 @Documentation("OAuth 2.0 support.")
 public class OAuth20 implements Serializable {
@@ -57,7 +64,26 @@ public class OAuth20 implements Serializable {
     private String clientSecret;
 
     @Option
-    @Documentation("The required scopes.")
-    private List<String> scopes = new ArrayList<>();
+    @Documentation("The additional OAuth parameters.")
+    private List<FormParam> params = new ArrayList<>();
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @GridLayout({ @GridLayout.Row({ "key", "value" }) })
+    @Documentation("Parameters configuration.")
+    public static class FormParam implements Serializable {
+
+        @Option
+        @Required
+        @Suggestable(value = UIService.ACTION_SUGGESTABLE_LOAD_OAUTH2_FORM_PARAMS)
+        @Documentation("Name of the parameter.")
+        private String key;
+
+        @Option
+        @Documentation("Value of the parameter.")
+        private String value;
+
+    }
 
 }

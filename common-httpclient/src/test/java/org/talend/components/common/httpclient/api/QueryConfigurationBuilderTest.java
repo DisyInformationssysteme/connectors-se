@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.apache.cxf.helpers.HttpHeaderHelper;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.junit.jupiter.api.Assertions;
@@ -159,7 +160,7 @@ class QueryConfigurationBuilderTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "raw/json",
+    @CsvSource({"raw/json",
             "json/raw",
             "raw/xml",
             "xml/raw",
@@ -309,7 +310,7 @@ class QueryConfigurationBuilderTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "true", "false" })
+    @CsvSource({"true", "false"})
     public void setAuthenticationTest(boolean bypass) {
         QueryConfiguration config = QueryConfigurationBuilder.create("https://myurl.com")
                 .bypassCertificateConfiguration(bypass)
@@ -319,7 +320,7 @@ class QueryConfigurationBuilderTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "QUERY_PARAMETERS,Authorization,Bearer,123456,Bearer 123456",
+    @CsvSource({"QUERY_PARAMETERS,Authorization,Bearer,123456,Bearer 123456",
             "HEADERS,Authorization,Bearer,123456,Bearer 123456",
             "QUERY_PARAMETERS,'  azerty  ','  prefix  ','  123456  ','prefix 123456'",
             "HEADERS,'  azerty  ','  prefix  ','  123456  ','prefix 123456'",
@@ -346,10 +347,10 @@ class QueryConfigurationBuilderTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "FORM,aaa/zzz/eee",
+    @CsvSource({"FORM,aaa/zzz/eee",
             "FORM,''",
             "BASIC,qqq",
-            "DIGEST,''" })
+            "DIGEST,''"})
     public void setOAuth20ClientCredentials(String mode, String scopes) {
         List<String> scopeList = Arrays.asList(scopes.split("/"));
         String endpoint = "https://mydomain.com/oauth/token";
@@ -363,7 +364,9 @@ class QueryConfigurationBuilderTest {
                 .acceptRelativeURLRedirection(false)
                 .acceptOnlySameHostRedirection(true)
                 .setOAuth20ClientCredential(OAuth20.AuthentMode.valueOf(mode), endpoint, clientId, clientSecret,
-                        scopeList)
+                        scopeList.stream()
+                                .map(s -> new KeyValuePair(OAuth20.Keys.scope.name(), s))
+                                .collect(Collectors.toList()))
                 .build();
 
         Assertions.assertEquals(AuthenticationType.OAuth20_Client_Credential, config.getAuthenticationType());
@@ -373,28 +376,38 @@ class QueryConfigurationBuilderTest {
         Assertions.assertEquals(endpoint, oauthCall.getUrl());
 
         Map<String, String> form =
-                oauthCall.getBodyQueryParams().stream().collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
+                oauthCall.getBodyQueryParams().stream()
+                        .filter(e -> !OAuth20.Keys.scope.name().equals(e.getKey())) // scope parameters are checked after
+                        .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
 
         Assertions.assertEquals("POST", oauthCall.getMethod());
         Assertions.assertTrue(form.containsKey(OAuth20.Keys.grant_type.name()));
         Assertions.assertEquals(OAuth20.GrantType.client_credentials.name(), form.get(OAuth20.Keys.grant_type.name()));
 
         if (!scopes.trim().isEmpty()) {
-            Assertions.assertEquals(scopeList.stream().collect(Collectors.joining(" ")),
-                    form.get(OAuth20.Keys.scope.name()));
+            // check scope parameters
+            List<String> scopeValues = oauthCall.getBodyQueryParams().stream()
+                    .filter(e -> OAuth20.Keys.scope.name().equals(e.getKey()))
+                    .map(e -> e.getValue())
+                    .collect(Collectors.toList());
+
+            Assertions.assertEquals(scopeList.size(), scopeValues.size());
+
+            scopeList.stream().forEach(e -> scopeValues.remove(e));
+            Assertions.assertEquals(0, scopeValues.size());
         }
 
         OAuth20.AuthentMode m = OAuth20.AuthentMode.valueOf(mode);
         switch (m) {
-        case FORM:
-            Assertions.assertEquals(clientId, form.get(OAuth20.Keys.client_id.name()));
-            Assertions.assertEquals(clientSecret, form.get(OAuth20.Keys.client_secret.name()));
-            break;
-        case BASIC:
-        case DIGEST:
-            Assertions.assertEquals(clientId, oauthCall.getLoginPassword().getLogin());
-            Assertions.assertEquals(clientSecret, oauthCall.getLoginPassword().getPassword());
-            break;
+            case FORM:
+                Assertions.assertEquals(clientId, form.get(OAuth20.Keys.client_id.name()));
+                Assertions.assertEquals(clientSecret, form.get(OAuth20.Keys.client_secret.name()));
+                break;
+            case BASIC:
+            case DIGEST:
+                Assertions.assertEquals(clientId, oauthCall.getLoginPassword().getLogin());
+                Assertions.assertEquals(clientSecret, oauthCall.getLoginPassword().getPassword());
+                break;
         }
 
         // Alignment with main query

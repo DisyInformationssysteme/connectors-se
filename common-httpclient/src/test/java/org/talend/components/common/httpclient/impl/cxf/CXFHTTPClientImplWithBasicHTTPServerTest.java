@@ -15,6 +15,7 @@ package org.talend.components.common.httpclient.impl.cxf;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -40,10 +41,12 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.talend.components.common.httpclient.api.HTTPClient;
 import org.talend.components.common.httpclient.api.HTTPClientException;
+import org.talend.components.common.httpclient.api.KeyValuePair;
 import org.talend.components.common.httpclient.api.QueryConfiguration;
 import org.talend.components.common.httpclient.api.QueryConfigurationBuilder;
 import org.talend.components.common.httpclient.api.ResponseFormat;
 import org.talend.components.common.httpclient.api.authentication.OAuth20;
+import org.talend.components.common.httpclient.api.authentication.OAuth20FlowExecution;
 import org.talend.components.common.httpclient.api.authentication.Token;
 import org.talend.components.common.httpclient.api.pagination.PaginationParametersLocation;
 import org.talend.components.common.httpclient.factory.HTTPClientFactory;
@@ -273,6 +276,46 @@ class CXFHTTPClientImplWithBasicHTTPServerTest {
 
         // This is a test local credential, it can be public
         Assertions.assertEquals("Basic bXlVc2VyOm15UGFzc3dvcmQ=", token);
+    }
+
+    @Test
+    public void oauth20ClientCredentialAdditionalParameters() {
+        QueryConfigurationBuilder queryConfigurationBuilder =
+                QueryConfigurationBuilder.create(getUrl(BasicHTTPServerFactory.HTTP_OAUTH_RESOURCE))
+                        .setMethod("GET")
+                        .setOAuth20ClientCredential(OAuth20.AuthentMode.FORM,
+                                getUrl(BasicHTTPServerFactory.HTTP_OAUTH_CLIENT_CREDENTIALS_FORM_TOKEN),
+                                BasicHTTPServerFactory.HTTP_OAUTH_CLIENT_CREDENTIALS_TOKEN_CLIENT_ID,
+                                BasicHTTPServerFactory.HTTP_OAUTH_CLIENT_CREDENTIALS_TOKEN_CLIENT_SECRET,
+                                Arrays.asList(new KeyValuePair(OAuth20.Keys.scope.name(), "my_resource_read"),
+                                        new KeyValuePair("enterprise_id", "1234"),
+                                        new KeyValuePair(OAuth20.Keys.scope.name(), "my_resource_write"),
+                                        new KeyValuePair("another", "abcde"),
+                                        new KeyValuePair("enterprise_id", "5678")));
+
+        QueryConfiguration query = queryConfigurationBuilder.build();
+
+        OAuth20FlowExecution oAuth20FlowExecution = new OAuth20FlowExecution(query.getOauthCall());
+        QueryConfiguration config = oAuth20FlowExecution.getConfig();
+        List<KeyValuePair> bodyQueryParams = config.getBodyQueryParams();
+
+        Assertions.assertEquals("my_resource_read my_resource_write", bodyQueryParams.stream()
+                .filter(p -> OAuth20.Keys.scope.name().equals(p.getKey()))
+                .map(e -> e.getValue())
+                .findFirst()
+                .orElse(""));
+
+        Assertions.assertEquals("1234;5678", bodyQueryParams.stream()
+                .filter(p -> "enterprise_id".equals(p.getKey()))
+                .map(e -> e.getValue())
+                .findFirst()
+                .orElse(""));
+
+        Assertions.assertEquals("abcde", bodyQueryParams.stream()
+                .filter(p -> "another".equals(p.getKey()))
+                .map(e -> e.getValue())
+                .findFirst()
+                .orElse(""));
     }
 
     @ParameterizedTest
