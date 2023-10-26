@@ -158,19 +158,7 @@ public class HTTPClientService {
 
         // Proxy
         if (config.getDataset().getDatastore().isUseProxy()) {
-            String proxyHost = config.getDataset().getDatastore().getProxyConfiguration().getProxyHost();
-            int proxyPort = config.getDataset().getDatastore().getProxyConfiguration().getProxyPort();
-            if (config.getDataset()
-                    .getDatastore()
-                    .getProxyConfiguration()
-                    .getProxyType() == ProxyConfiguration.ProxyType.HTTP) {
-                queryConfigurationBuilder.setHTTPProxy(proxyHost, proxyPort,
-                        config.getDataset().getDatastore().getProxyConfiguration().getProxyLogin(),
-                        config.getDataset().getDatastore().getProxyConfiguration().getProxyPassword());
-            } else {
-                queryConfigurationBuilder.setSOCKSProxy(proxyHost, proxyPort);
-            }
-
+            configureProxyForQueryConfigurationBuilder(config, queryConfigurationBuilder);
         }
 
         // Certificate
@@ -311,6 +299,22 @@ public class HTTPClientService {
         queryConfigurationBuilder.decompressResponsePayload(true);
 
         return queryConfiguration;
+    }
+
+    private static void configureProxyForQueryConfigurationBuilder(RequestConfig config,
+            QueryConfigurationBuilder queryConfigurationBuilder) {
+        String proxyHost = config.getDataset().getDatastore().getProxyConfiguration().getProxyHost();
+        int proxyPort = config.getDataset().getDatastore().getProxyConfiguration().getProxyPort();
+        if (config.getDataset()
+                .getDatastore()
+                .getProxyConfiguration()
+                .getProxyType() == ProxyConfiguration.ProxyType.HTTP) {
+            queryConfigurationBuilder.setHTTPProxy(proxyHost, proxyPort,
+                    config.getDataset().getDatastore().getProxyConfiguration().getProxyLogin(),
+                    config.getDataset().getDatastore().getProxyConfiguration().getProxyPassword());
+        } else {
+            queryConfigurationBuilder.setSOCKSProxy(proxyHost, proxyPort);
+        }
     }
 
     private void manageOAuth20(QueryConfigurationBuilder builder, RequestConfig config) {
