@@ -263,7 +263,16 @@ public class CXFHTTPClientImpl implements HTTPClient<WebClient> {
                 QueryConfiguration oauthCall = queryConfiguration.getOauthCall();
                 OAuth20FlowExecution flow = new OAuth20FlowExecution(oauthCall);
                 this.token = flow.executeFlow();
+                String type = token.getTokenType();
+                if (type.length() > 2) {
+                    // https://api.box.com/2.0/ was return type as 'bearer'
+                    // But expect 'Bearer' in Authorization as define in
+                    // OAUTH RFC: https://datatracker.ietf.org/doc/html/rfc6750#autoid-6
+                    type = type.substring(0, 1).toUpperCase() + type.substring(1).toLowerCase();
+                }
+                token.setTokenType(type);
             }
+
             String t = String.format("%s %s", token.getTokenType(), token.getAccessToken());
             this.setAuthorizationToken(t);
             break;

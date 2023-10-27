@@ -132,7 +132,7 @@ public class QueryConfigurationBuilder {
     }
 
     public QueryConfigurationBuilder setOAuth20ClientCredential(OAuth20.AuthentMode mode, String tokenEndpoint,
-                                                                String clientId, String clientSecret, List<KeyValuePair> params, List<KeyValuePair> headers) {
+            String clientId, String clientSecret, List<KeyValuePair> params, List<KeyValuePair> headers) {
 
         notNull("http.configuration.authentication.oauth.client_credential.authentication.mode", mode);
         tokenEndpoint = notEmptyNorNull("http.configuration.authentication.oauth.client_credential.token_endpoint",
@@ -153,17 +153,17 @@ public class QueryConfigurationBuilder {
                 params.stream().map(kvp -> kvp.getKey() + "=" + kvp.getValue()).collect(Collectors.joining(";"));
 
         switch (mode) {
-            case FORM:
-                oauth20QueryConfigurationBuilder.addXWWWFormURLEncodedBodyParam(OAuth20.Keys.client_id.name(), clientId);
-                oauth20QueryConfigurationBuilder.addXWWWFormURLEncodedBodyParam(OAuth20.Keys.client_secret.name(),
-                        clientSecret);
-                break;
-            case BASIC:
-                oauth20QueryConfigurationBuilder.setBasicAuthentication(clientId, clientSecret);
-                break;
-            case DIGEST:
-                oauth20QueryConfigurationBuilder.setDigestAuthentication(clientId, clientSecret);
-                break;
+        case FORM:
+            oauth20QueryConfigurationBuilder.addXWWWFormURLEncodedBodyParam(OAuth20.Keys.client_id.name(), clientId);
+            oauth20QueryConfigurationBuilder.addXWWWFormURLEncodedBodyParam(OAuth20.Keys.client_secret.name(),
+                    clientSecret);
+            break;
+        case BASIC:
+            oauth20QueryConfigurationBuilder.setBasicAuthentication(clientId, clientSecret);
+            break;
+        case DIGEST:
+            oauth20QueryConfigurationBuilder.setDigestAuthentication(clientId, clientSecret);
+            break;
         }
 
         oauth20QueryConfigurationBuilder.setMethod("POST");
@@ -210,7 +210,7 @@ public class QueryConfigurationBuilder {
     }
 
     public QueryConfigurationBuilder setAPIKey(APIKeyDestination destination, String name, String prefix,
-                                               String token) {
+            String token) {
         notNull("http.configuration.apikey.destination", destination);
         name = notEmptyNorNull("http.configuration.apikey.name", name, true);
         prefix = prefix == null ? "" : prefix.trim();
@@ -252,7 +252,7 @@ public class QueryConfigurationBuilder {
     /**
      * Define the body as multipart/form-data, and add a key/value parameter.
      *
-     * @param key   The key of the parameter
+     * @param key The key of the parameter
      * @param value The value of the parameter
      * @return The builder
      */
@@ -277,7 +277,7 @@ public class QueryConfigurationBuilder {
     /**
      * Define the body as application/x-www-form-urlencoded, and add a key/value parameter.
      *
-     * @param key   The key of the parameter
+     * @param key The key of the parameter
      * @param value The value of the parameter
      * @return The builder
      */
@@ -339,7 +339,7 @@ public class QueryConfigurationBuilder {
     }
 
     public QueryConfigurationBuilder setHTTPProxy(String host, int port, String login,
-                                                  String password) {
+            String password) {
         return this.setProxy(ProxyConfiguration.ProxyType.HTTP, host, port, login, password);
     }
 
@@ -348,7 +348,7 @@ public class QueryConfigurationBuilder {
     }
 
     protected QueryConfigurationBuilder setProxy(ProxyConfiguration.ProxyType type, String host, int port, String login,
-                                                 String password) {
+            String password) {
         host = notEmptyNorNull("http.configuration.proxy.host", host, true);
 
         if (login != null) {
@@ -361,8 +361,8 @@ public class QueryConfigurationBuilder {
     }
 
     public QueryConfigurationBuilder setOffsetLimitPagination(PaginationParametersLocation location,
-                                                              String offsetParamName, String offsetValue, String limitParamName,
-                                                              String limitValue, String elementsPath) {
+            String offsetParamName, String offsetValue, String limitParamName,
+            String limitValue, String elementsPath) {
 
         OffsetLimitPagination offsetLimitPagination = new OffsetLimitPagination(location, offsetParamName,
                 offsetValue, limitParamName, limitValue, elementsPath);
@@ -502,7 +502,7 @@ public class QueryConfigurationBuilder {
      * https://github.com/Talend/connectors-se/blob/master/common/src/main/java/org/talend/components/common/text/Substitutor.java
      *
      * @param substitutor All configuration element can have placeholder according to the given substitur that will
-     *                    replace them with concrete values.
+     * replace them with concrete values.
      */
     private void substitute(final Substitutor substitutor) {
         // Single values

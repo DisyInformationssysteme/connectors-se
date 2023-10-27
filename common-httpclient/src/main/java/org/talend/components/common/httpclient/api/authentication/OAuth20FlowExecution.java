@@ -59,7 +59,10 @@ public class OAuth20FlowExecution {
         try (JsonParser parser = Json.createParser(new StringReader(bodyAsString))) {
             jsonObject = parser.getObject();
         } catch (IllegalStateException e) {
-            throw new HTTPClientException("Can't parse OAuth2.0 token response as a json.", e);
+            throw new HTTPClientException(
+                    String.format("Can't parse OAuth2.0 token response as a json. Authentication status: %s",
+                            response.getStatus().getCodeWithReason()),
+                    e);
         }
 
         // Response 200 > code >= 300 : not successful
@@ -128,34 +131,6 @@ public class OAuth20FlowExecution {
 
     private void manageParameters() {
 
-        /* We shoulld do nothing
-        Map<String, String> params = new HashMap<>();
-        for (KeyValuePair kvp : this.config.getBodyQueryParams()) {
-            String key = kvp.getKey();
-            String currentValue = params.getOrDefault(key, "");
-
-            String value = Optional.ofNullable(kvp.getValue()).orElse("");
-
-            String sep = ";";
-            if (currentValue.isEmpty() || value.isEmpty()) {
-                sep = "";
-            } else if (OAuth20.Keys.scope.name().compareToIgnoreCase(key) == 0) {
-                sep = " ";
-            }
-
-            currentValue = currentValue + sep + value;
-            params.put(key, currentValue);
-        }
-
-        List<KeyValuePair> concatenated = params.entrySet()
-                .stream()
-                .map(e -> new KeyValuePair(e.getKey(), e.getValue()))
-                .collect(Collectors.toList());
-
-
-
-        this.config.setBodyQueryParams(concatenated);
-         */
     }
 
 }

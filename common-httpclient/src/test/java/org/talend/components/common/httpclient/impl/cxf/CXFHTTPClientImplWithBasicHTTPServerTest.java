@@ -291,7 +291,9 @@ class CXFHTTPClientImplWithBasicHTTPServerTest {
                                         new KeyValuePair("enterprise_id", "1234"),
                                         new KeyValuePair(OAuth20.Keys.scope.name(), "my_resource_write"),
                                         new KeyValuePair("another", "abcde"),
-                                        new KeyValuePair("enterprise_id", "5678")));
+                                        new KeyValuePair("enterprise_id", "5678"),
+                                        new KeyValuePair("another", "fghi")),
+                                Collections.emptyList());
 
         QueryConfiguration query = queryConfigurationBuilder.build();
 
@@ -299,23 +301,27 @@ class CXFHTTPClientImplWithBasicHTTPServerTest {
         QueryConfiguration config = oAuth20FlowExecution.getConfig();
         List<KeyValuePair> bodyQueryParams = config.getBodyQueryParams();
 
-        Assertions.assertEquals("my_resource_read my_resource_write", bodyQueryParams.stream()
+        List<String> expectedScopes = new ArrayList<>(Arrays.asList("my_resource_read", "my_resource_write"));
+        List<String> expectedEnterpriseId = new ArrayList<>(Arrays.asList("1234", "5678"));
+        List<String> expectedAnother = new ArrayList<>(Arrays.asList("abcde", "fghi"));
+
+        bodyQueryParams.stream()
                 .filter(p -> OAuth20.Keys.scope.name().equals(p.getKey()))
                 .map(e -> e.getValue())
-                .findFirst()
-                .orElse(""));
+                .forEach(e -> Assertions.assertTrue(expectedScopes.remove(e)));
+        Assertions.assertEquals(0, expectedScopes.size());
 
-        Assertions.assertEquals("1234;5678", bodyQueryParams.stream()
+        bodyQueryParams.stream()
                 .filter(p -> "enterprise_id".equals(p.getKey()))
                 .map(e -> e.getValue())
-                .findFirst()
-                .orElse(""));
+                .forEach(e -> Assertions.assertTrue(expectedEnterpriseId.remove(e)));
+        Assertions.assertEquals(0, expectedEnterpriseId.size());
 
-        Assertions.assertEquals("abcde", bodyQueryParams.stream()
+        bodyQueryParams.stream()
                 .filter(p -> "another".equals(p.getKey()))
                 .map(e -> e.getValue())
-                .findFirst()
-                .orElse(""));
+                .forEach(e -> Assertions.assertTrue(expectedAnother.remove(e)));
+        Assertions.assertEquals(0, expectedAnother.size());
     }
 
     @ParameterizedTest
@@ -331,6 +337,7 @@ class CXFHTTPClientImplWithBasicHTTPServerTest {
                                 tokenEndpoint,
                                 clientId,
                                 clientSecret,
+                                Collections.emptyList(),
                                 Collections.emptyList());
 
         if (expectedToken != null) {

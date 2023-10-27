@@ -208,7 +208,9 @@ public class HTTPClientService {
             config.getDataset()
                     .getHeaders()
                     .stream()
-                    .filter(h -> h.getQuery() == Header.HEADER_QUERY_DESTINATION.MAIN || h.getQuery() == Header.HEADER_QUERY_DESTINATION.BOTH)
+                    .filter(h -> h.getKey() != null && !h.getKey().trim().isEmpty())
+                    .filter(h -> h.getQuery() == Header.HEADER_QUERY_DESTINATION.MAIN
+                            || h.getQuery() == Header.HEADER_QUERY_DESTINATION.BOTH)
                     .forEach(p -> queryConfigurationBuilder.addHeader(p.getKey(), p.getValue()));
         }
 
@@ -228,6 +230,7 @@ public class HTTPClientService {
             case FORM_DATA:
                 body.getParams()
                         .stream()
+                        .filter(p -> p.getKey() != null && !p.getKey().trim().isEmpty())
                         .forEach(
                                 p -> queryConfigurationBuilder.addMultipartFormDataBodyParam(p.getKey(), p.getValue()));
                 break;
@@ -319,9 +322,13 @@ public class HTTPClientService {
         OAuth20 oauth20 = config.getDataset().getDatastore().getAuthentication().getOauth20();
 
         List<KeyValuePair> headers = new ArrayList<>();
-        if(config.getDataset().isHasHeaders()){
-            config.getDataset().getHeaders().stream()
-                    .filter(h -> h.getQuery() == Header.HEADER_QUERY_DESTINATION.AUTHENT || h.getQuery() == Header.HEADER_QUERY_DESTINATION.BOTH)
+        if (config.getDataset().isHasHeaders()) {
+            config.getDataset()
+                    .getHeaders()
+                    .stream()
+                    .filter(h -> h.getKey() != null && !h.getKey().trim().isEmpty())
+                    .filter(h -> h.getQuery() == Header.HEADER_QUERY_DESTINATION.AUTHENT
+                            || h.getQuery() == Header.HEADER_QUERY_DESTINATION.BOTH)
                     .map(h -> new KeyValuePair(h.getKey(), h.getValue()))
                     .forEach(h -> headers.add(h));
         }
@@ -330,6 +337,7 @@ public class HTTPClientService {
         case CLIENT_CREDENTIAL:
             List<KeyValuePair> params = oauth20.getParams()
                     .stream()
+                    .filter(p -> p.getKey() != null && !p.getKey().trim().isEmpty())
                     .map(p -> new KeyValuePair(p.getKey(), p.getValue()))
                     .collect(Collectors.toList());
 
