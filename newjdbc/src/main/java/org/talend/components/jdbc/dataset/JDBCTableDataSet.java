@@ -26,9 +26,6 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.util.Optional.ofNullable;
 
 @Data
 @GridLayout({
@@ -41,7 +38,7 @@ import static java.util.Optional.ofNullable;
 })
 @DataSet("JDBCTableDataSet")
 @Documentation("A table dataset")
-public class JDBCTableDataSet implements BaseDataSet, Serializable {
+public class JDBCTableDataSet implements CommonDataSet, Serializable {
 
     @Option
     @Documentation("The connection information to execute")

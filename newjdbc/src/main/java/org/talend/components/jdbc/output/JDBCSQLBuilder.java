@@ -14,7 +14,7 @@ package org.talend.components.jdbc.output;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.common.SchemaInfo;
-import org.talend.components.jdbc.dataset.BaseDataSet;
+import org.talend.components.jdbc.dataset.CommonDataSet;
 import org.talend.components.jdbc.platforms.Platform;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.SchemaProperty;
@@ -291,7 +291,7 @@ public class JDBCSQLBuilder {
             List<FieldOption> fieldOptions = Optional.of(config.getFieldOptions()).orElse(Collections.emptyList());
 
             String dynamicColumnName = null;
-            final BaseDataSet dataSet = config.getDataSet();
+            final CommonDataSet dataSet = config.getDataSet();
             if (dataSet != null) {
                 final List<SchemaInfo> designFields = dataSet.getSchema();
                 if (designFields != null) {

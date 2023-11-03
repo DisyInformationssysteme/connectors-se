@@ -221,12 +221,14 @@ public class JDBCOutputConfig implements Serializable {
 
     @Option
     @ActiveIf(target = UIScope.TARGET, value = { UIScope.STUDIO_SCOPE })
+    @ActiveIf(target = "dataAction", value = { "INSERT", "UPDATE", "DELETE" })
     @Documentation("")
     private boolean useBatch = true;
 
     // use this instead of platform/tck runtime fixed one from @BeforeGroup and @AfterGroup
     // cloud always use batch way
     @Option
+    @ActiveIf(target = "dataAction", value = { "INSERT", "UPDATE", "DELETE" })
     @ActiveIf(target = "useBatch", value = { "true" })
     @Documentation("")
     private int batchSize = 10000;

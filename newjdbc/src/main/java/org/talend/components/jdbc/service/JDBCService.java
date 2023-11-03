@@ -484,39 +484,34 @@ public class JDBCService implements Serializable {
             if (jdbcClass == null || jdbcClass.isEmpty()) {
                 throw new RuntimeException("Please set jdbc driver class.");
             }
-            final ClassLoader threadContextClassLoader = Thread.currentThread().getContextClassLoader();
-            Driver driver;
-            try {
-                Class<?> driverClass = threadContextClassLoader.loadClass(jdbcClass);
-                driver = (Driver) driverClass.newInstance();
-            } catch (ClassNotFoundException e) {
-                // ConfigurableClassLoader for any tck connector runtime, and for dynamic load jar way, the classloader
-                // graph like this:
-                // ConfigurableClassLoader(dynamic one)==>ConfigurableClassLoader(static root one)==>ClassLoader which
-                // is decided by runtime env, like microservice/standalone==>System
-                // for spring-boot microservice one, the .m2 setting don't contains jdbc jar, so
-                // ConfigurableClassLoader(dynamic one) can't load it,
-                // also the parent one(ConfigurableClassLoader(static root one)) can't too, but for the microservice, in
-                // fact, jdbc jar in its classpath, so use the parent's parent
-                ClassLoader cl = threadContextClassLoader.getParent();
-                if (cl != null) {
-                    cl = cl.getParent();
 
-                    if (cl != null) {
-                        try {
-                            driver = (Driver) cl.loadClass(jdbcClass).newInstance();
-                        } catch (Exception ex) {
-                            throw new RuntimeException(ex);
-                        }
-                    } else {
-                        throw new RuntimeException(e);
-                    }
-                } else {
+            // ConfigurableClassLoader for any tck connector runtime, and for dynamic load jar way, the classloader
+            // graph like this:
+            // ConfigurableClassLoader(dynamic one)==>ConfigurableClassLoader(static root one)==>ClassLoader which
+            // is decided by runtime env, like microservice/standalone==>System
+            // for spring-boot microservice one, the .m2 setting don't contains jdbc jar, so
+            // ConfigurableClassLoader(dynamic one) can't load it,
+            // also the parent one(ConfigurableClassLoader(static root one)) can't too, but for the microservice, in
+            // fact, jdbc jar in its classpath, so use the parent's parent
+            ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
+            Driver driver = null;
+            int maxUp = 2;
+            // in common, no need this loop, but as tck ConfigurableClassLoader which is a special
+            // classloader, need this
+            do {
+                try {
+                    driver = (Driver) currentClassLoader.loadClass(jdbcClass).newInstance();
+                } catch (ClassNotFoundException e) {
+                    currentClassLoader = currentClassLoader.getParent();
+                } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            } while ((driver == null) && (currentClassLoader != null) && (maxUp-- > 0));
+
+            if (driver == null) {
+                throw new RuntimeException("Can't find the jdbc driver class : " + jdbcClass);
             }
+
             final Properties properties = new Properties();
             if (dataStore.getUserId() != null) {
                 properties.setProperty("user", dataStore.getUserId());
