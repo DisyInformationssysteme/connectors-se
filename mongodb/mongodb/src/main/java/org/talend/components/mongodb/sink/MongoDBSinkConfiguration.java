@@ -19,6 +19,7 @@ import org.talend.components.mongo.WriteConcern;
 import org.talend.components.mongo.output.MongoCommonOutputConfiguration;
 import org.talend.components.mongodb.DataAction;
 import org.talend.components.mongodb.dataset.MongoDBReadAndWriteDataSet;
+import org.talend.components.mongodb.migration.MongoDBSinkMigration;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -29,7 +30,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.util.Collections;
 import java.util.List;
 
-@Version(1)
+@Version(value = 2, migrationHandler = MongoDBSinkMigration.class)
 @Data
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataset" }), //
         @GridLayout.Row({ "setWriteConcern" }), //
