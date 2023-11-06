@@ -12,17 +12,13 @@
  */
 package org.talend.components.jdbc.input;
 
-import org.talend.components.jdbc.common.SchemaInfo;
-import org.talend.components.jdbc.dataset.BaseDataSet;
-import org.talend.components.jdbc.datastore.JDBCDataStore;
-import org.talend.components.jdbc.platforms.Platform;
+import org.talend.components.jdbc.dataset.CommonDataSet;
 
 import java.io.Serializable;
-import java.util.List;
 
 public interface BaseInputConfig extends Serializable {
 
-    BaseDataSet getDataSet();
+    CommonDataSet getDataSet();
 
     JDBCCommonInputConfig getConfig();
 }

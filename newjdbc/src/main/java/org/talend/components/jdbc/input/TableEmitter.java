@@ -14,16 +14,9 @@ package org.talend.components.jdbc.input;
 
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.jdbc.service.JDBCService;
-import org.talend.sdk.component.api.component.Icon;
-import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
-import org.talend.sdk.component.api.context.RuntimeContext;
-import org.talend.sdk.component.api.context.RuntimeContextHolder;
-import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
-import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.connection.Connection;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.annotation.PostConstruct;
@@ -32,10 +25,6 @@ import java.io.Serializable;
 import java.sql.SQLException;
 
 @Slf4j
-@Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "datastore-connector")
-@Emitter(name = "TableInput") // TODO how to make it only works for cloud? no need this for studio
-@Documentation("JDBC table input")
 public class TableEmitter implements Serializable {
 
     private static final long serialVersionUID = 1;

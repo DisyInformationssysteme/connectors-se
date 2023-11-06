@@ -19,7 +19,7 @@ import org.talend.components.jdbc.platforms.Platform;
 import java.io.Serializable;
 import java.util.List;
 
-public interface BaseDataSet extends Serializable {
+public interface CommonDataSet extends Serializable {
 
     JDBCDataStore getDataStore();
 
