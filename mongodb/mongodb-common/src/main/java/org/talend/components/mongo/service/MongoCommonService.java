@@ -60,6 +60,7 @@ public class MongoCommonService {
         } catch (Exception e) {
             // TODO use i18n
             LOG.error(e.getMessage(), e);
+            throw new RuntimeException(e);
         }
         return client;
     }

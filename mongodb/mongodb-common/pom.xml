@@ -16,17 +16,17 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-core</artifactId>
-            <version>${mongodb-driver-core.version}</version>
+            <version>${mongodb-driver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
-            <version>${mongodb-driver-sync.version}</version>
+            <version>${mongodb-driver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>bson</artifactId>
-            <version>${bson.version}</version>
+            <version>${mongodb-driver.version}</version>
         </dependency>
         <dependency>
             <groupId>org.talend.components</groupId>
