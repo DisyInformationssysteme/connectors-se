@@ -62,7 +62,7 @@ public class SchemaInferer {
         }
 
         if (allowSpecialName) {
-            schemaBuilder.withProp("field.special.name", "true");
+            schemaBuilder.withProp(SchemaProperty.ALLOW_SPECIAL_NAME, "true");
         }
 
         return schemaBuilder.build();
@@ -135,7 +135,7 @@ public class SchemaInferer {
             } while (metadata.next());
 
             if (allowSpecialName) {
-                schemaBuilder.withProp("field.special.name", "true");
+                schemaBuilder.withProp(SchemaProperty.ALLOW_SPECIAL_NAME, "true");
             }
             return schemaBuilder.build();
         }
@@ -296,6 +296,10 @@ public class SchemaInferer {
             entryBuilder.withProp(SchemaProperty.STUDIO_TYPE, talendType.getName());
 
             entryBuilder.withType(TalendTypeAndTckTypeConverter.convertTalendType2TckType(talendType));
+        }
+
+        if (columnTypeName != null && !columnTypeName.isEmpty()) {
+            entryBuilder.withProp(SchemaProperty.ORIGIN_TYPE, columnTypeName);
         }
 
         // correct precision/scale/date pattern

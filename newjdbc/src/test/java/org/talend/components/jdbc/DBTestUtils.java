@@ -902,21 +902,19 @@ public class DBTestUtils {
 
         assertEquals("ID", field.getOriginalFieldName());
         assertEquals(Schema.Type.INT, field.getType());
-        // assertEquals("INTEGER", field.getProp(""));//TODO origin db type
+        assertEquals("INTEGER", field.getProp(SchemaProperty.ORIGIN_TYPE));
         assertEquals(null, field.getProp(SchemaProperty.SIZE));
-        assertEquals(null, field.getProp(SchemaProperty.SCALE));// TODO scale
-        assertEquals(null, field.getProp(SchemaProperty.PATTERN));// TODO pattern
-        assertEquals(null, field.getProp(""));// TODO default
+        assertEquals(null, field.getProp(SchemaProperty.SCALE));
+        assertEquals(null, field.getProp(SchemaProperty.PATTERN));
 
         field = columns.get(1);
 
         assertEquals("NAME", field.getOriginalFieldName());
         assertEquals(Schema.Type.STRING, field.getType());
-        // assertEquals("VARCHAR", field.getProp(""));//TODO origin db type
+        assertEquals("VARCHAR", field.getProp(SchemaProperty.ORIGIN_TYPE));
         assertEquals("8", field.getProp(SchemaProperty.SIZE));
         assertEquals(null, field.getProp(SchemaProperty.SCALE));
-        assertEquals(null, field.getProp(SchemaProperty.PATTERN));// TODO pattern
-        assertEquals(null, field.getProp(""));// TODO default
+        assertEquals(null, field.getProp(SchemaProperty.PATTERN));
     }
 
     private static void createAllFunctionOrProcedures(JDBCService service, JDBCDataStore dataStore, String tableName)
