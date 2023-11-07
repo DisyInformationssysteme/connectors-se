@@ -21,11 +21,11 @@ public class MongoDBSinkMigration implements MigrationHandler {
 
     @Override
     public Map<String, String> migrate(int incomingVersion, Map<String, String> incomingData) {
-        if (incomingVersion == 1) {
-            String isSetWriteConcern = incomingData.get("setWriteConcern");
-            String writeConcern = incomingData.get("writeConcern");
+        if (incomingVersion < 2) {
+            String isSetWriteConcern = incomingData.get("configuration.setWriteConcern");
+            String writeConcern = incomingData.get("configuration.writeConcern");
             if ("true".equals(isSetWriteConcern) && "REPLICA_ACKNOWLEDGED".equals(writeConcern)) {
-                incomingData.put("writeConcern", String.valueOf(WriteConcern.W2));
+                incomingData.put("configuration.writeConcern", String.valueOf(WriteConcern.W2));
             }
         }
         return incomingData;
