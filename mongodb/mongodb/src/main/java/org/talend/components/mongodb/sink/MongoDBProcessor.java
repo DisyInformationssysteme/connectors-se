@@ -25,6 +25,7 @@ import org.talend.components.mongo.output.MongoCommonOutput;
 import org.talend.components.mongo.service.RecordToDocument;
 import org.talend.components.mongodb.dataset.MongoDBReadAndWriteDataSet;
 import org.talend.components.mongodb.datastore.MongoDBDataStore;
+import org.talend.components.mongodb.migration.MongoDBSinkMigration;
 import org.talend.components.mongodb.service.I18nMessage;
 import org.talend.components.mongodb.service.MongoDBService;
 import org.talend.sdk.component.api.component.Icon;
@@ -41,7 +42,7 @@ import java.util.List;
 
 import static com.mongodb.WriteConcern.*;
 
-@Version(1)
+@Version(value = 2, migrationHandler = MongoDBSinkMigration.class)
 @Slf4j
 @Icon(value = Icon.IconType.CUSTOM, custom = "mongo_db-connector")
 @Processor(name = "Sink")

@@ -30,7 +30,7 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.util.Collections;
 import java.util.List;
 
-@Version(value = 2, migrationHandler = MongoDBSinkMigration.class)
+@Version(1)
 @Data
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataset" }), //
         @GridLayout.Row({ "setWriteConcern" }), //
