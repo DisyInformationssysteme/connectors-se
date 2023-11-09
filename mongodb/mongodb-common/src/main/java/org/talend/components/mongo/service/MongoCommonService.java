@@ -41,6 +41,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.talend.components.mongo.AddressType.REPLICA_SET;
+import static org.talend.components.mongo.AddressType.STANDALONE;
 import static org.talend.sdk.component.api.record.Schema.Type.*;
 
 @Version(1)
@@ -104,18 +106,15 @@ public class MongoCommonService {
         // value string
 
         ClusterSettings.Builder clusterSettings = ClusterSettings.builder();
-        switch (datastore.getAddressType()) {
-        case STANDALONE:
+        if (STANDALONE.equals(datastore.getAddressType())) {
             uri.append(datastore.getAddress().getHost())
                     .append(":")
                     .append(datastore.getAddress().getPort())
                     .append("/");
             clusterSettings.requiredClusterType(ClusterType.STANDALONE);
-            break;
-        case REPLICA_SET:
+        } else if (REPLICA_SET.equals(datastore.getAddressType())) {
             getServerAddresses(datastore.getReplicaSetAddress(), uri);
             clusterSettings.requiredClusterType(ClusterType.REPLICA_SET);
-            break;
         }
 
         boolean first = true;
@@ -135,23 +134,7 @@ public class MongoCommonService {
             clientSettingsBuilder.credential(credential);
         }
 
-        // clientSettingsBuilder.applyToClusterSettings(cs -> cs.applySettings(clusterSettings.build()));
-        // TODO call right set method by the list above
-        // optionsBuilder.maxConnectionIdleTime(1000);
-
-        // do special process for ssl cert as sometimes, we need to ingore cert as impossible to provide it
-        /*
-         * if (sslEnabled) {
-         * optionsBuilder.sslEnabled(sslEnabled).sslInvalidHostNameAllowed( );
-         * if (ignoreSSLCertificate) {
-         * SSLContext sslContext = SSLUtils.ignoreSSLCertificate();
-         * optionsBuilder.sslContext(sslContext);
-         * optionsBuilder.socketFactory(sslContext.getSocketFactory());
-         * }
-         * }
-         */
-        MongoClientSettings settings = clientSettingsBuilder.build();
-        return settings;
+        return clientSettingsBuilder.build();
     }
 
     public HealthCheckStatus healthCheck(final MongoCommonDataStore datastore) {
