@@ -19,8 +19,6 @@ import com.mongodb.MongoCredential;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.connection.ClusterSettings;
-import com.mongodb.connection.ClusterType;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
@@ -105,8 +103,8 @@ public class MongoCommonService {
         // from key
         // value string
 
-        //no need to set requiredClusterType, just keep it as UNKNOWN
-        //and not found options key related to cluster type, the same with aws docdb
+        // no need to set requiredClusterType, just keep it as UNKNOWN
+        // and not found options key related to cluster type, the same with aws docdb
         if (STANDALONE.equals(datastore.getAddressType())) {
             uri.append(datastore.getAddress().getHost())
                     .append(":")
