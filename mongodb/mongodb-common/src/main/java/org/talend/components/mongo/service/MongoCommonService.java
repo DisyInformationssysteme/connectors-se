@@ -105,16 +105,15 @@ public class MongoCommonService {
         // from key
         // value string
 
-        ClusterSettings.Builder clusterSettings = ClusterSettings.builder();
+        //no need to set requiredClusterType, just keep it as UNKNOWN
+        //and not found options key related to cluster type, the same with aws docdb
         if (STANDALONE.equals(datastore.getAddressType())) {
             uri.append(datastore.getAddress().getHost())
                     .append(":")
                     .append(datastore.getAddress().getPort())
                     .append("/");
-            clusterSettings.requiredClusterType(ClusterType.STANDALONE);
         } else if (REPLICA_SET.equals(datastore.getAddressType())) {
             getServerAddresses(datastore.getReplicaSetAddress(), uri);
-            clusterSettings.requiredClusterType(ClusterType.REPLICA_SET);
         }
 
         boolean first = true;
@@ -126,14 +125,11 @@ public class MongoCommonService {
             uri.append(parameter.getKey()).append('=').append(parameter.getValue()).append('&');
         }
         uri.deleteCharAt(uri.length() - 1);
-
         clientSettingsBuilder.applyConnectionString(new ConnectionString(uri.toString()));
-
         MongoCredential credential = getMongoCredential(datastore);
         if (credential != null) {
             clientSettingsBuilder.credential(credential);
         }
-
         return clientSettingsBuilder.build();
     }
 
