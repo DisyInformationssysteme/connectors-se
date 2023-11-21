@@ -132,7 +132,7 @@ public class QueryConfigurationBuilder {
     }
 
     public QueryConfigurationBuilder setOAuth20ClientCredential(OAuth20.AuthentMode mode, String tokenEndpoint,
-            String clientId, String clientSecret, List<String> scopes) {
+            String clientId, String clientSecret, List<KeyValuePair> params, List<KeyValuePair> headers) {
 
         notNull("http.configuration.authentication.oauth.client_credential.authentication.mode", mode);
         tokenEndpoint = notEmptyNorNull("http.configuration.authentication.oauth.client_credential.token_endpoint",
@@ -143,13 +143,14 @@ public class QueryConfigurationBuilder {
 
         QueryConfigurationBuilder oauth20QueryConfigurationBuilder = QueryConfigurationBuilder.create(tokenEndpoint);
 
-        String scopesStr = scopes.stream().collect(Collectors.joining(" ")).trim();
         oauth20QueryConfigurationBuilder.addXWWWFormURLEncodedBodyParam(OAuth20.Keys.grant_type.name(),
                 OAuth20.GrantType.client_credentials.name());
 
-        if (!scopesStr.isEmpty()) {
-            oauth20QueryConfigurationBuilder.addXWWWFormURLEncodedBodyParam(OAuth20.Keys.scope.name(), scopesStr);
-        }
+        params.stream()
+                .forEach(kvp -> oauth20QueryConfigurationBuilder.addXWWWFormURLEncodedBodyParam(kvp.getKey(),
+                        kvp.getValue()));
+        String concatParams =
+                params.stream().map(kvp -> kvp.getKey() + "=" + kvp.getValue()).collect(Collectors.joining(";"));
 
         switch (mode) {
         case FORM:
@@ -167,6 +168,8 @@ public class QueryConfigurationBuilder {
 
         oauth20QueryConfigurationBuilder.setMethod("POST");
 
+        headers.stream().forEach(h -> oauth20QueryConfigurationBuilder.addHeader(h.getKey(), h.getValue()));
+
         queryConfiguration.setAuthenticationType(AuthenticationType.OAuth20_Client_Credential);
         this.setOauthCallBuilder(oauth20QueryConfigurationBuilder);
 
@@ -175,7 +178,7 @@ public class QueryConfigurationBuilder {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(tokenEndpoint.getBytes(StandardCharsets.UTF_8));
             md.update(OAuth20.GrantType.client_credentials.name().getBytes(StandardCharsets.UTF_8));
-            md.update(scopesStr.getBytes(StandardCharsets.UTF_8));
+            md.update(concatParams.getBytes(StandardCharsets.UTF_8));
             md.update(clientId.getBytes(StandardCharsets.UTF_8));
             md.update(clientSecret.getBytes(StandardCharsets.UTF_8));
             byte[] digest = md.digest();
@@ -196,7 +199,6 @@ public class QueryConfigurationBuilder {
     public QueryConfigurationBuilder addHeader(String key, String value) {
         key = notEmptyNorNull("http.configuration.header", key, true);
         this.queryConfiguration.getHeaders().add(new KeyValuePair(key, value));
-
         return this;
     }
 

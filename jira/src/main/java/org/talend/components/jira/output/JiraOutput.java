@@ -21,6 +21,7 @@ import org.talend.components.common.httpclient.api.HTTPClient;
 import org.talend.components.common.httpclient.api.HTTPClientException;
 import org.talend.components.http.configuration.Dataset;
 import org.talend.components.http.configuration.Datastore;
+import org.talend.components.http.configuration.Header;
 import org.talend.components.http.configuration.OutputContent;
 import org.talend.components.http.configuration.Param;
 import org.talend.components.http.configuration.RequestBody;
@@ -91,7 +92,7 @@ public class JiraOutput extends AbstractHTTPOutput<JiraOutputConfiguration> {
 
         Dataset requestDataset = new Dataset();
         requestDataset.setDatastore(requestConfigDatastore);
-        Param hostHeader = new Param("Host", configuration.getDataset().getDatastore().getJiraURL());
+        Header hostHeader = new Header("Host", configuration.getDataset().getDatastore().getJiraURL(), Header.HEADER_QUERY_DESTINATION.MAIN);
         requestDataset.setHasHeaders(true);
         requestDataset.setHeaders(Collections.singletonList(hostHeader));
         switch (configuration.getOutputAction()) {

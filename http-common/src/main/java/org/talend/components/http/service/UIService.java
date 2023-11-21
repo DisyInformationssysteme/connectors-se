@@ -15,6 +15,7 @@ package org.talend.components.http.service;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.common.httpclient.api.HTTPMethod;
+import org.talend.components.common.httpclient.api.authentication.OAuth20;
 import org.talend.components.http.configuration.Dataset;
 import org.talend.components.http.configuration.Format;
 import org.talend.components.http.configuration.OutputContent;
@@ -52,6 +53,9 @@ public class UIService {
     public final static String ACTION_PAGINATION_FLAVOR_LIST = "ACTION_PAGINATION_FLAVOR_LIST";
 
     public final static String ACTION_UPDATE_PAGINATION_PRESET = "ACTION_UPDATE_PAGINATION_PRESET";
+
+    public final static String ACTION_SUGGESTABLE_LOAD_OAUTH2_FORM_PARAMS =
+            "ACTION_SUGGESTABLE_LOAD_OAUTH2_FORM_PARAMS";
 
     @Service
     @Getter
@@ -169,6 +173,14 @@ public class UIService {
         entries.forEach(e -> builder.withEntry(e));
 
         return builder.build();
+    }
+
+    @Suggestions(ACTION_SUGGESTABLE_LOAD_OAUTH2_FORM_PARAMS)
+    public SuggestionValues loadOAuth2ProposedFormParams() {
+        SuggestionValues suggestionValues = new SuggestionValues();
+        suggestionValues.setItems(
+                Arrays.asList(new SuggestionValues.Item(OAuth20.Keys.scope.name(), OAuth20.Keys.scope.name())));
+        return suggestionValues;
     }
 
 }

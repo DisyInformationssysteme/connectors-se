@@ -26,7 +26,9 @@ public class OAuth20 {
         client_id,
         client_secret,
         grant_type,
-        scope
+        scope,
+        resource,
+        audience
     }
 
     public enum successToken {

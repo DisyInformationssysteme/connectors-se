@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 import javax.activation.FileDataSource;
 import javax.json.stream.JsonParserFactory;
@@ -30,6 +31,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.talend.components.common.httpclient.api.HTTPClient;
 import org.talend.components.common.httpclient.api.HTTPClientException;
+import org.talend.components.common.httpclient.api.KeyValuePair;
 import org.talend.components.common.httpclient.api.ProxyConfiguration;
 import org.talend.components.common.httpclient.api.QueryConfiguration;
 import org.talend.components.common.httpclient.api.QueryConfigurationBuilder;
@@ -38,6 +40,7 @@ import org.talend.components.common.httpclient.api.authentication.Token;
 import org.talend.components.common.httpclient.api.pagination.PaginationParametersLocation;
 import org.talend.components.common.httpclient.api.substitutor.Substitutor;
 import org.talend.components.common.httpclient.factory.HTTPClientFactory;
+import org.talend.components.http.configuration.Header;
 import org.talend.components.http.configuration.RequestBody;
 import org.talend.components.http.configuration.RequestConfig;
 import org.talend.components.http.configuration.UploadFile;
@@ -195,6 +198,9 @@ public class HTTPClientService {
             config.getDataset()
                     .getHeaders()
                     .stream()
+                    .filter(h -> h.getKey() != null && !h.getKey().trim().isEmpty())
+                    .filter(h -> h.getQuery() == Header.HEADER_QUERY_DESTINATION.MAIN
+                            || h.getQuery() == Header.HEADER_QUERY_DESTINATION.BOTH)
                     .forEach(p -> queryConfigurationBuilder.addHeader(p.getKey(), p.getValue()));
         }
 
@@ -214,6 +220,7 @@ public class HTTPClientService {
             case FORM_DATA:
                 body.getParams()
                         .stream()
+                        .filter(p -> p.getKey() != null && !p.getKey().trim().isEmpty())
                         .forEach(
                                 p -> queryConfigurationBuilder.addMultipartFormDataBodyParam(p.getKey(), p.getValue()));
                 break;
@@ -319,15 +326,35 @@ public class HTTPClientService {
 
     private void manageOAuth20(QueryConfigurationBuilder builder, RequestConfig config) {
         OAuth20 oauth20 = config.getDataset().getDatastore().getAuthentication().getOauth20();
+
+        List<KeyValuePair> headers = new ArrayList<>();
+        if (config.getDataset().isHasHeaders()) {
+            config.getDataset()
+                    .getHeaders()
+                    .stream()
+                    .filter(h -> h.getKey() != null && !h.getKey().trim().isEmpty())
+                    .filter(h -> h.getQuery() == Header.HEADER_QUERY_DESTINATION.AUTHENT
+                            || h.getQuery() == Header.HEADER_QUERY_DESTINATION.BOTH)
+                    .map(h -> new KeyValuePair(h.getKey(), h.getValue()))
+                    .forEach(h -> headers.add(h));
+        }
+
         switch (oauth20.getFlow()) {
         case CLIENT_CREDENTIAL:
+            List<KeyValuePair> params = oauth20.getParams()
+                    .stream()
+                    .filter(p -> p.getKey() != null && !p.getKey().trim().isEmpty())
+                    .map(p -> new KeyValuePair(p.getKey(), p.getValue()))
+                    .collect(Collectors.toList());
+
             builder.setOAuth20ClientCredential(
                     org.talend.components.common.httpclient.api.authentication.OAuth20.AuthentMode
                             .valueOf(oauth20.getAuthenticationType().name()),
                     oauth20.getTokenEndpoint(),
                     oauth20.getClientId(),
                     oauth20.getClientSecret(),
-                    oauth20.getScopes());
+                    params,
+                    headers);
             break;
         }
     }

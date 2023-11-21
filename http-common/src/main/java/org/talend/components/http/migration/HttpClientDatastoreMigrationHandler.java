@@ -12,7 +12,9 @@
  */
 package org.talend.components.http.migration;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.talend.sdk.component.api.component.MigrationHandler;
 
@@ -22,6 +24,10 @@ public class HttpClientDatastoreMigrationHandler implements MigrationHandler {
     public Map<String, String> migrate(int incomingVersion, Map<String, String> incomingData) {
         if (incomingVersion < 2) {
             migrateProxyConfig(incomingData, "");
+        }
+
+        if (incomingVersion < 3) {
+            migrateOAuthScopesToAdditionalParams(incomingData, "");
         }
         return incomingData;
     }
@@ -39,9 +45,27 @@ public class HttpClientDatastoreMigrationHandler implements MigrationHandler {
                 version1ProxyConfigPathPrefix + "proxyConfiguration.proxyPassword");
     }
 
+    static void migrateOAuthScopesToAdditionalParams(Map<String, String> incomingData,
+            String version1ProxyConfigPathPrefix) {
+
+        // Scopes are added in oauth20.params
+        String scopes = incomingData.entrySet()
+                .stream()
+                .filter(e -> e.getKey().startsWith(version1ProxyConfigPathPrefix + "authentication.oauth20.scopes"))
+                .map(e -> e.getValue())
+                .collect(Collectors.joining(" "));
+
+        if (!scopes.trim().isEmpty()) {
+            incomingData.put(version1ProxyConfigPathPrefix + "authentication.oauth20.params[0].key", "scope");
+            incomingData.put(version1ProxyConfigPathPrefix + "authentication.oauth20.params[1].value", scopes);
+        }
+
+    }
+
     private static void putIfNotNull(Map<String, String> configMap, String from, String to) {
         if (configMap.containsKey(from) && configMap.get(from) != null) {
             configMap.put(to, configMap.remove(from));
         }
     }
+
 }

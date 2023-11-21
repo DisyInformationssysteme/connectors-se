@@ -45,7 +45,7 @@ import lombok.Data;
 @Documentation("HTTP connection configuration.")
 public class Datastore implements Serializable {
 
-    public static final int VERSION = 2;
+    public static final int VERSION = 3;
 
     @Option
     @Required

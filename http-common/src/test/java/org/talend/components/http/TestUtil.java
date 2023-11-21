@@ -13,14 +13,18 @@
 package org.talend.components.http;
 
 import com.sun.net.httpserver.HttpExchange;
+import org.talend.components.http.configuration.Param;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -35,10 +39,19 @@ public class TestUtil {
      * @return Extract from the given string the HTTP form key/values and create a MAp from them.
      */
     public static Map<String, String> queryToMap(String query) {
-        if (query == null) {
-            return Collections.emptyMap();
-        }
         Map<String, String> result = new HashMap<>();
+
+        Collection<Param> collection = queryToCollection(query);
+        collection.stream().forEach(e -> result.put(e.getKey(), e.getValue()));
+
+        return result;
+    }
+
+    public static Collection<Param> queryToCollection(String query) {
+        if (query == null) {
+            return Collections.emptyList();
+        }
+        List<Param> result = new ArrayList<>();
         for (String param : query.split("&")) {
             String[] entry = param.split("=");
             if (entry.length > 1) {
@@ -48,9 +61,9 @@ public class TestUtil {
                 } catch (UnsupportedEncodingException e) {
                     decoded = "Fail to decode";
                 }
-                result.put(entry[0], decoded);
+                result.add(new Param(entry[0], decoded));
             } else {
-                result.put(entry[0], "");
+                result.add(new Param(entry[0], ""));
             }
         }
         return result;

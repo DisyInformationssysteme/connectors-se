@@ -15,6 +15,7 @@ package org.talend.components.http.configuration;
 import lombok.Data;
 import org.talend.components.extension.polling.api.PollableDuplicateDataset;
 import org.talend.components.http.configuration.pagination.Pagination;
+import org.talend.components.http.migration.HttpClientDatasetMigrationHandler;
 import org.talend.components.http.service.UIService;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -33,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Version(Datastore.VERSION)
+@Version(value = Datastore.VERSION, migrationHandler = HttpClientDatasetMigrationHandler.class)
 @DataSet("Dataset")
 @PollableDuplicateDataset
 @GridLayout({ @GridLayout.Row({ "datastore" }), //
@@ -145,7 +146,7 @@ public class Dataset implements Serializable {
     @Option
     @ActiveIf(target = "hasHeaders", value = "true")
     @Documentation("Query headers.")
-    private List<Param> headers = new ArrayList<>();
+    private List<Header> headers = new ArrayList<>();
 
     @Option
     @Documentation("Activate to define query parameters.")

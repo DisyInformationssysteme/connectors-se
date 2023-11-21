@@ -13,12 +13,14 @@
 package org.talend.components.common.httpclient.api;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.apache.cxf.helpers.HttpHeaderHelper;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.junit.jupiter.api.Assertions;
@@ -363,7 +365,10 @@ class QueryConfigurationBuilderTest {
                 .acceptRelativeURLRedirection(false)
                 .acceptOnlySameHostRedirection(true)
                 .setOAuth20ClientCredential(OAuth20.AuthentMode.valueOf(mode), endpoint, clientId, clientSecret,
-                        scopeList)
+                        scopeList.stream()
+                                .map(s -> new KeyValuePair(OAuth20.Keys.scope.name(), s))
+                                .collect(Collectors.toList()),
+                        Collections.emptyList())
                 .build();
 
         Assertions.assertEquals(AuthenticationType.OAuth20_Client_Credential, config.getAuthenticationType());
@@ -373,15 +378,28 @@ class QueryConfigurationBuilderTest {
         Assertions.assertEquals(endpoint, oauthCall.getUrl());
 
         Map<String, String> form =
-                oauthCall.getBodyQueryParams().stream().collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
+                oauthCall.getBodyQueryParams()
+                        .stream()
+                        .filter(e -> !OAuth20.Keys.scope.name().equals(e.getKey())) // scope parameters are checked
+                                                                                    // after
+                        .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
 
         Assertions.assertEquals("POST", oauthCall.getMethod());
         Assertions.assertTrue(form.containsKey(OAuth20.Keys.grant_type.name()));
         Assertions.assertEquals(OAuth20.GrantType.client_credentials.name(), form.get(OAuth20.Keys.grant_type.name()));
 
         if (!scopes.trim().isEmpty()) {
-            Assertions.assertEquals(scopeList.stream().collect(Collectors.joining(" ")),
-                    form.get(OAuth20.Keys.scope.name()));
+            // check scope parameters
+            List<String> scopeValues = oauthCall.getBodyQueryParams()
+                    .stream()
+                    .filter(e -> OAuth20.Keys.scope.name().equals(e.getKey()))
+                    .map(e -> e.getValue())
+                    .collect(Collectors.toList());
+
+            Assertions.assertEquals(scopeList.size(), scopeValues.size());
+
+            scopeList.stream().forEach(e -> scopeValues.remove(e));
+            Assertions.assertEquals(0, scopeValues.size());
         }
 
         OAuth20.AuthentMode m = OAuth20.AuthentMode.valueOf(mode);

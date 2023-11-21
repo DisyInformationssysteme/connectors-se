@@ -14,14 +14,21 @@ package org.talend.components.common.httpclient.api.authentication;
 
 import java.io.InputStream;
 import java.io.StringReader;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.stream.JsonParser;
 
+import lombok.Getter;
 import org.talend.components.common.httpclient.api.DefaultConfigurationValues;
 import org.talend.components.common.httpclient.api.HTTPClient;
 import org.talend.components.common.httpclient.api.HTTPClientException;
+import org.talend.components.common.httpclient.api.KeyValuePair;
 import org.talend.components.common.httpclient.api.QueryConfiguration;
 import org.talend.components.common.httpclient.factory.HTTPClientFactory;
 
@@ -33,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OAuth20FlowExecution {
 
+    @Getter
     private QueryConfiguration config;
 
     public OAuth20FlowExecution(QueryConfiguration config) {
@@ -50,7 +58,10 @@ public class OAuth20FlowExecution {
         try (JsonParser parser = Json.createParser(new StringReader(bodyAsString))) {
             jsonObject = parser.getObject();
         } catch (IllegalStateException e) {
-            throw new HTTPClientException("Can't parse OAuth2.0 token response as a json.", e);
+            throw new HTTPClientException(
+                    String.format("Can't parse OAuth2.0 token response as a json. Authentication status: %s",
+                            response.getStatus().getCodeWithReason()),
+                    e);
         }
 
         // Response 200 > code >= 300 : not successful
