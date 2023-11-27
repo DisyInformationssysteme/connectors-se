@@ -88,7 +88,7 @@ class CXFHTTPResponseImpl implements HTTPClient.HTTPResponse<Response> {
 
     @Override
     public String getBodyAsString() throws HTTPClientException {
-        loadPayload(!this.isSuccess());
+        loadPayload();
         try {
             return new String(this.payload, 0, this.payload.length, this.getEncoding());
         } catch (UnsupportedEncodingException e) {
@@ -102,20 +102,16 @@ class CXFHTTPResponseImpl implements HTTPClient.HTTPResponse<Response> {
 
     @Override
     public InputStream getBodyAsStream() throws HTTPClientException {
-        loadPayload(!this.isSuccess());
+        loadPayload();
         return new ByteArrayInputStream(this.payload);
     }
 
-    private void loadPayload(boolean null2Empty) throws HTTPClientException {
+    private void loadPayload() throws HTTPClientException {
         try {
             if (this.payload == null) {
                 InputStream inputStream = (InputStream) response.getEntity();
                 if (inputStream == null) {
-                    if (!null2Empty) {
-                        this.payload = null;
-                    } else {
-                        inputStream = new ByteArrayInputStream(new byte[] {});
-                    }
+                    inputStream = new ByteArrayInputStream(new byte[] {});
                 }
 
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
