@@ -47,10 +47,9 @@ import org.talend.components.http.configuration.auth.OAuth20;
 import org.talend.components.http.configuration.pagination.OffsetLimitStrategyConfig;
 import org.talend.components.http.configuration.pagination.Pagination;
 import org.talend.components.http.service.ClassLoaderInvokeUtils;
-import org.talend.components.http.service.provider.DictionaryProvider;
 import org.talend.components.http.service.I18n;
 import org.talend.components.http.service.RecordBuilderService;
-import org.talend.sdk.component.api.exception.ComponentException;
+import org.talend.components.http.service.provider.DictionaryProvider;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -159,17 +158,7 @@ public class HTTPClientService {
 
         // Proxy
         if (config.getDataset().getDatastore().isUseProxy()) {
-
-            if (config.getDataset().getDatastore().getProxyType() == ProxyConfiguration.ProxyType.HTTP) {
-                queryConfigurationBuilder.setHTTPProxy(config.getDataset().getDatastore().getProxyHost(),
-                        config.getDataset().getDatastore().getProxyPort(),
-                        config.getDataset().getDatastore().getProxyLogin(),
-                        config.getDataset().getDatastore().getProxyPassword());
-            } else {
-                queryConfigurationBuilder.setSOCKSProxy(config.getDataset().getDatastore().getProxyHost(),
-                        config.getDataset().getDatastore().getProxyPort());
-            }
-
+            configureProxyForQueryConfigurationBuilder(config, queryConfigurationBuilder);
         }
 
         // Certificate
@@ -310,6 +299,22 @@ public class HTTPClientService {
         queryConfigurationBuilder.decompressResponsePayload(true);
 
         return queryConfiguration;
+    }
+
+    private static void configureProxyForQueryConfigurationBuilder(RequestConfig config,
+            QueryConfigurationBuilder queryConfigurationBuilder) {
+        String proxyHost = config.getDataset().getDatastore().getProxyConfiguration().getProxyHost();
+        int proxyPort = config.getDataset().getDatastore().getProxyConfiguration().getProxyPort();
+        if (config.getDataset()
+                .getDatastore()
+                .getProxyConfiguration()
+                .getProxyType() == ProxyConfiguration.ProxyType.HTTP) {
+            queryConfigurationBuilder.setHTTPProxy(proxyHost, proxyPort,
+                    config.getDataset().getDatastore().getProxyConfiguration().getProxyLogin(),
+                    config.getDataset().getDatastore().getProxyConfiguration().getProxyPassword());
+        } else {
+            queryConfigurationBuilder.setSOCKSProxy(proxyHost, proxyPort);
+        }
     }
 
     private void manageOAuth20(QueryConfigurationBuilder builder, RequestConfig config) {

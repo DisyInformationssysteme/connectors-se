@@ -39,7 +39,7 @@ import java.util.List;
 })
 @DataSet("JDBCQueryDataSet")
 @Documentation("A query dataset")
-public class JDBCQueryDataSet implements BaseDataSet, Serializable {
+public class JDBCQueryDataSet implements CommonDataSet, Serializable {
 
     @Option
     @Documentation("The connection information to execute")
