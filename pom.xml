@@ -95,7 +95,7 @@
         <spark.version>3.4.0</spark.version>
         <ivy.version>2.5.2</ivy.version>
         <shrinkwrap.version>3.1.4</shrinkwrap.version>
-        <avro.version>1.11.2</avro.version>
+        <avro.version>1.11.3</avro.version>
         <jackson-bom.version>2.13.4.20221013</jackson-bom.version>
         <jackson.version>2.13.4</jackson.version> <!--in most cases should be equal to jackson-bom-->
         <jackson-databind.version>2.13.4.2</jackson-databind.version> <!--in most cases should be equal to jackson-bom-->
