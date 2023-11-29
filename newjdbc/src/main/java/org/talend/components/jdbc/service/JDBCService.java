@@ -480,11 +480,6 @@ public class JDBCService implements Serializable {
         }
 
         private void initSingleConnection(final JDBCDataStore dataStore) {
-            final String jdbcClass = dataStore.getJdbcClass();
-            if (jdbcClass == null || jdbcClass.isEmpty()) {
-                throw new RuntimeException("Please set jdbc driver class.");
-            }
-
             // ConfigurableClassLoader for any tck connector runtime, and for dynamic load jar way, the classloader
             // graph like this:
             // ConfigurableClassLoader(dynamic one)==>ConfigurableClassLoader(static root one)==>ClassLoader which
@@ -500,7 +495,7 @@ public class JDBCService implements Serializable {
             // classloader, need this
             do {
                 try {
-                    driver = (Driver) currentClassLoader.loadClass(jdbcClass).newInstance();
+                    driver = (Driver) currentClassLoader.loadClass(dataStore.getJdbcClass()).newInstance();
                 } catch (ClassNotFoundException e) {
                     currentClassLoader = currentClassLoader.getParent();
                 } catch (Exception e) {
@@ -509,7 +504,7 @@ public class JDBCService implements Serializable {
             } while ((driver == null) && (currentClassLoader != null) && (maxUp-- > 0));
 
             if (driver == null) {
-                throw new RuntimeException("Can't find the jdbc driver class : " + jdbcClass);
+                throw new RuntimeException("Can't find the jdbc driver class : " + dataStore.getJdbcClass());
             }
 
             final Properties properties = new Properties();
@@ -568,31 +563,56 @@ public class JDBCService implements Serializable {
 
     public static class JDBCDataSource implements AutoCloseable {
 
-        private final Resolver.ClassLoaderDescriptor classLoaderDescriptor;
+        private Resolver.ClassLoaderDescriptor classLoaderDescriptor;
 
         private final ConnectionPool connectionPool;
 
         private final boolean isCloud;
 
+        private final boolean originClassLoaderContainJDBCClass;
+
+        private boolean originClassLoaderContainJDBCClass(final JDBCDataStore dataStore) {
+            try {
+                Class.forName(dataStore.getJdbcClass());
+            } catch (Exception e) {
+                return false;
+            }
+
+            return true;
+        }
+
         public JDBCDataSource(final Resolver resolver,
                 final JDBCDataStore dataStore, final JDBCService jdbcService,
                 final Map<String, String> additionalJDBCProperties) {
+            isCloud = RuntimeEnvUtil.isCloud(dataStore);
+            if (!isCloud) {
+                final String jdbcClass = dataStore.getJdbcClass();
+                if (jdbcClass == null || jdbcClass.isEmpty()) {
+                    throw new RuntimeException("Please set jdbc driver class.");
+                }
+            }
+
+            originClassLoaderContainJDBCClass = !isCloud && originClassLoaderContainJDBCClass(dataStore);
+
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
 
-            isCloud = RuntimeEnvUtil.isCloud(dataStore);
-            final List<String> paths;
+            List<String> paths = null;
+
             if (isCloud) {
                 final JDBCConfiguration.Driver driver = jdbcService.getPlatformService().getDriver(dataStore);
                 paths = driver.getPaths();
-                classLoaderDescriptor = resolver.mapDescriptorToClassLoader(paths);
-                if (!classLoaderDescriptor.resolvedDependencies().containsAll(driver.getPaths())) {
-                    String missingJars = driver
-                            .getPaths()
-                            .stream()
-                            .filter(p -> !classLoaderDescriptor.resolvedDependencies().contains(p))
-                            .collect(joining("\n"));
-                    throw new IllegalStateException(jdbcService.getI18n().errorDriverLoad(driver.getId(), missingJars));
+                if (!originClassLoaderContainJDBCClass) {
+                    classLoaderDescriptor = resolver.mapDescriptorToClassLoader(paths);
+                    if (!classLoaderDescriptor.resolvedDependencies().containsAll(driver.getPaths())) {
+                        String missingJars = driver
+                                .getPaths()
+                                .stream()
+                                .filter(p -> !classLoaderDescriptor.resolvedDependencies().contains(p))
+                                .collect(joining("\n"));
+                        throw new IllegalStateException(
+                                jdbcService.getI18n().errorDriverLoad(driver.getId(), missingJars));
+                    }
                 }
             } else {
                 final List<org.talend.components.jdbc.common.Driver> drivers = dataStore.getJdbcDriver();
@@ -601,11 +621,15 @@ public class JDBCService implements Serializable {
                         .stream()
                         .map(driver -> convertMvnPath2TckPath(driver.getPath()))
                         .collect(Collectors.toList());
-                classLoaderDescriptor = resolver.mapDescriptorToClassLoader(paths);
+                if (!originClassLoaderContainJDBCClass) {
+                    classLoaderDescriptor = resolver.mapDescriptorToClassLoader(paths);
+                }
             }
 
             try {
-                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                if (!originClassLoaderContainJDBCClass) {
+                    thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                }
                 connectionPool = new ConnectionPool(dataStore, paths, isCloud, jdbcService, additionalJDBCProperties);
             } finally {
                 thread.setContextClassLoader(prev);
@@ -616,8 +640,10 @@ public class JDBCService implements Serializable {
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
             try {
-                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
-                if (isCloud) {
+                if (!originClassLoaderContainJDBCClass) {
+                    thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                }
+                if (isCloud && !originClassLoaderContainJDBCClass) {
                     return wrap(classLoaderDescriptor.asClassLoader(), connectionPool.getConnection(),
                             Connection.class);
                 } else {
@@ -633,12 +659,16 @@ public class JDBCService implements Serializable {
             final Thread thread = Thread.currentThread();
             final ClassLoader prev = thread.getContextClassLoader();
             try {
-                thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                if (!originClassLoaderContainJDBCClass) {
+                    thread.setContextClassLoader(classLoaderDescriptor.asClassLoader());
+                }
                 connectionPool.close();
             } finally {
                 thread.setContextClassLoader(prev);
                 try {
-                    classLoaderDescriptor.close();
+                    if (!originClassLoaderContainJDBCClass) {
+                        classLoaderDescriptor.close();
+                    }
                 } catch (final Exception e) {
                     log.error("can't close driver classloader properly", e);
                 }
