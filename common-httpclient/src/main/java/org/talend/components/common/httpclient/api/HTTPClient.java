@@ -69,6 +69,25 @@ public interface HTTPClient<C> {
          * Return last number of retrieved element with the pagination strategie.
          */
         int getLastPageCount() throws HTTPClientException;
+
+        /**
+         * Get Content-Length value.
+         *
+         * @return Content-Length header value as integer if present and valid number. In other
+         * cases returns {@code -1}.
+         */
+        default int getContentLength() {
+            Object header = getHeaders().get("Content-Length");
+            if (header != null) {
+                try {
+                    return Integer.parseInt(String.valueOf(header));
+                } catch (NumberFormatException ignored) {
+                    // return -1 when can't parse
+                }
+            }
+
+            return -1;
+        }
     }
 
     @AllArgsConstructor
