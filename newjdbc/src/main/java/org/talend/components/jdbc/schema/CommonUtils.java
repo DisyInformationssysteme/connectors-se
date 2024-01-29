@@ -249,6 +249,7 @@ public class CommonUtils {
         dbType2MappingFileSubfix.put(DBType.NETEZZA, "Netezza");
         dbType2MappingFileSubfix.put(DBType.ORACLE, "Oracle");
         dbType2MappingFileSubfix.put(DBType.POSTGRESQL, "Postgres");
+        dbType2MappingFileSubfix.put(DBType.POSTGREPLUS, "PostgresPlus");
         dbType2MappingFileSubfix.put(DBType.SQLITE, "SQLite");
         dbType2MappingFileSubfix.put(DBType.SYBASE, "Sybase");
         dbType2MappingFileSubfix.put(DBType.SAPHANA, "SAPHana");
@@ -285,6 +286,7 @@ public class CommonUtils {
         productValue2DefaultMappingFileSubfix.put("ORACLE", "Oracle");
         productValue2DefaultMappingFileSubfix.put("PARACCEL", "ParAccel");
         productValue2DefaultMappingFileSubfix.put("POSTGRESQL", "Postgres");
+        productValue2DefaultMappingFileSubfix.put("POSTGRESPLUS", "PostgresPlus");
         productValue2DefaultMappingFileSubfix.put("REDSHIFT", "Redshift");
         productValue2DefaultMappingFileSubfix.put("SAPHANA", "SAPHana");
         productValue2DefaultMappingFileSubfix.put("SNOWFLAKE", "Snowflake");

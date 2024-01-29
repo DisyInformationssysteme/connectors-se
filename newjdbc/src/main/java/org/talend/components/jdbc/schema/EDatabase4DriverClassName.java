@@ -71,6 +71,7 @@ public enum EDatabase4DriverClassName {
     // Take care, PSQL is set as first here since actually the audit will take the first db with the postgresql driver
     // if change the order, it might break the audit for PSQL.
     PSQL(EDatabaseTypeName.PSQL, "org.postgresql.Driver"), //$NON-NLS-1$
+    PLUSPSQL(EDatabaseTypeName.PLUSPSQL, "org.postgresql.Driver"), //$NON-NLS-1$
     GREENPLUM(EDatabaseTypeName.GREENPLUM, "org.postgresql.Driver"), //$NON-NLS-1$
 
     SAS(EDatabaseTypeName.SAS, "com.sas.rio.MVADriver"), //$NON-NLS-1$

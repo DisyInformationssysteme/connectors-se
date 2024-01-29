@@ -42,6 +42,14 @@ public enum EDatabaseTypeName {
             "POSTGRE", //$NON-NLS-1$
             EDatabaseSchemaOrCatalogMapping.Sid,
             EDatabaseSchemaOrCatalogMapping.Schema),
+    PLUSPSQL(
+            "PostgresPlus", //$NON-NLS-1$
+            "PostgresPlus", //$NON-NLS-1$
+            Boolean.TRUE,
+            "POSTGRESPLUS", //$NON-NLS-1$
+            "POSTGREPLUS", //$NON-NLS-1$
+            EDatabaseSchemaOrCatalogMapping.Sid,
+            EDatabaseSchemaOrCatalogMapping.Schema),
     ORACLEFORSID(
             "ORACLE_SID", //$NON-NLS-1$
             "Oracle with SID", //$NON-NLS-1$
